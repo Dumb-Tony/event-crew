@@ -92,7 +92,7 @@ Current scope:
 
 - One top-down wedding venue and delivery yard.
 - Three-minute real-time setup phase and 22-second live-event phase.
-- Move; pick up/drop; connect/disconnect power; reset breaker; inspect checklist.
+- Move; weighted pick up/drop; snap to client marks; separately connect/disconnect power; reset breaker; inspect checklist.
 - Six chairs, two tables, one arch, sound system, decorative lights.
 - 15A circuit. Sound draws 8A; lights draw 9A; powering both trips it.
 - Fixed placement zones with continuous free movement.
@@ -102,14 +102,18 @@ Current scope:
 - Contextual interaction labels and world-space highlights for nearby equipment.
 - 30-second and 10-second guest-arrival warnings through the crew radio.
 - Guests walk into the player-authored layout when time expires.
+- Players remain active after doors open and can repair later moments while crowd proximity slows movement.
+- Procession, vows, and toast are fixed live cues that snapshot aisle, audio, and reception readiness.
+- Generated Web Audio cues, floating world feedback, pause/mute, and an optional five-minute relaxed deadline.
+- Rank-based debrief using arrival readiness, three live cues, overloads, detours, and late fixes.
 
-Explicit exclusions: networking, physics engine, inventory economy, saves, touch controls, audio, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred to protect a quick satisfying loop.
+Explicit exclusions: networking, full physics engine, inventory economy, saves, touch controls, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred until the authored wedding loop is proven in playtests.
 
 ## Technical approach and state architecture
 
 The prototype is plain HTML/CSS/JavaScript and one Canvas, with no packages or build step. `index.html` owns accessible surrounding UI; `styles.css` owns responsive presentation; `game.js` owns simulation and rendering. It can run by opening the file directly or through any static file server.
 
-State is one serializable object containing phase, clocks, player, items, power flags, guests, verification, and messages. Static world definitions (zones, capacities) sit outside runtime state. The frame loop advances simulation from elapsed time, renders from state, and then projects state into accessible DOM UI. Requirement evaluation is a pure derived query. Next refactor: split input, simulation, rules, render, audio, and scenario data before adding a second job.
+State is one serializable object containing phase, clocks, pause state, player, items, power flags, guests, verification, cue snapshots, counters, particles, and messages. Static world definitions (zones, capacities) sit outside runtime state. The frame loop advances simulation from elapsed time, renders from state, and then projects state into accessible DOM UI. `rules.js` now holds dependency-free geometry, load, readiness, and grading functions with Node-based tests. Next refactor: extract input, scenario data, rendering, and audio before adding a second job.
 
 Suggested production browser structure:
 
@@ -133,7 +137,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 
 ## State machines
 
-**Job:** `BRIEF → SETUP → LIVE_EVENT → DEBRIEF → RESTART`. The deadline alone transitions SETUP to LIVE_EVENT. The live clock transitions to DEBRIEF. Reset may occur at any point.
+**Job:** `BRIEF → SETUP → LIVE_EVENT → DEBRIEF → RESTART`, with a reversible `PAUSED` overlay during SETUP or LIVE_EVENT. The deadline alone transitions SETUP to LIVE_EVENT. Fixed live timestamps evaluate procession, vows, and toast from current world state. The live clock transitions to DEBRIEF. Reset may occur at any point.
 
 **Player:** `FREE ↔ CARRYING`. FREE can interact with nearest item, powered equipment, or breaker. CARRYING continuously binds one item to the player and drops it freely. Future states: PUSHING, TWO_PERSON_CARRY, OPERATING_TOOL, STUNNED.
 
@@ -146,14 +150,17 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 | Action | Browser | Unity default proposal |
 |---|---|---|
 | Move | WASD / arrows | Left stick / WASD |
-| Pick up, drop, use | Space | South face / E |
+| Pick up / drop | Space | South face / E |
+| Connect / disconnect / breaker | F | West face / F |
 | Inspect checklist | E | North face / Tab |
+| Pause | P | Menu |
+| Mute | M | Settings |
 | Restart prototype | R | Pause menu only |
 
 ## Milestones
 
-1. **M0 — Loop proof (current):** one job, deadline, placement, constrained power, checklist, live event, debrief.
-2. **M1 — Legibility pass (2–4 days):** contextual outlines, collision/route blocking, audio, warnings, pause, tuned pacing, test coverage.
+1. **M0 — Loop proof (complete):** one job, deadline, placement, constrained power, checklist, live event, debrief.
+2. **M1 — Legibility pass (substantially complete):** contextual outlines, collision/route blocking, audio, warnings, pause, relaxed timer, cue-based consequences, rule tests. Remaining gate: novice playtests and pacing tune.
 3. **M2 — Systems proof (1–2 weeks):** second job variant, rain/wind, fragile props, dolly, sequential dependencies, simple scoring and local save.
 4. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
 5. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
@@ -175,10 +182,10 @@ Open questions to test, not debate abstractly:
 
 ## Next implementation tasks
 
-1. Add minimal generated work audio for interaction and arrival cues.
-2. Add pause, mute, and a relaxed-time accessibility option.
-3. Extract scenario and requirement data from `game.js`.
-4. Add automated rule tests for placement, power overload/reset, deadline, and scoring.
-5. Count overloads and crew interactions in the debrief.
-6. Tune item locations and player speed from three first-time playtests.
-7. Add one weather variant only after the base completion rate is understood.
+1. Extract scenario and requirement data from `game.js`.
+2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
+3. Add a fragile wedding cake and a dolly as the first damage/tool interaction pair.
+4. Add one forecasted wind/rain variant with a clear preventative response.
+5. Add local completion history and best-rank persistence.
+6. Tune item locations, carry speeds, and cue timing from three first-time playtests.
+7. Add controller support before attempting local co-op.

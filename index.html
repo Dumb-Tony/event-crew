@@ -18,7 +18,7 @@
       <div class="deadline" aria-live="polite">
         <span id="phaseLabel">SETUP</span>
         <strong id="timer">03:00</strong>
-        <small>UNTIL GUESTS</small>
+        <small id="deadlineCaption">UNTIL GUESTS</small>
       </div>
     </header>
 
@@ -28,13 +28,28 @@
         <div class="brief-card">
           <p class="eyebrow">THE HAWTHORN WEDDING</p>
           <h2>Guests arrive in three minutes.</h2>
-          <p>Unload the van. Put the arch at the altar, two tables on the reception pads, and six chairs in the ceremony rows. Connect the sound system without overloading the circuit.</p>
+          <p>Unload the van. Put the arch at the altar, two tables on the reception pads, and six chairs in the ceremony rows. Place and power the sound system without overloading the circuit. When guests arrive, keep working—the vows and toast happen on schedule.</p>
           <div class="controls-grid">
             <span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd><b>Move</b></span>
-            <span><kbd>SPACE</kbd><b>Pick up / drop / use</b></span>
+            <span><kbd>SPACE</kbd><b>Pick up / drop</b></span>
+            <span><kbd>F</kbd><b>Power / breaker</b></span>
             <span><kbd>E</kbd><b>Inspect checklist</b></span>
+            <span><kbd>P</kbd><b>Pause</b></span>
           </div>
+          <label class="option"><input id="relaxedTime" type="checkbox"> Relaxed shift: five-minute setup</label>
           <button id="startButton">CLOCK IN</button>
+        </div>
+      </div>
+      <div id="pauseScreen" class="overlay hidden">
+        <div class="brief-card pause-card">
+          <p class="eyebrow">CREW BREAK</p>
+          <h2>Clock stopped.</h2>
+          <p>The guests have agreed not to move while this menu is open.</p>
+          <div class="button-row">
+            <button id="resumeButton">RESUME SHIFT</button>
+            <button id="muteButton" class="secondary">SOUND: ON</button>
+          </div>
+          <small>Press P to resume • R to restart</small>
         </div>
       </div>
       <div id="resultScreen" class="overlay hidden">
@@ -54,7 +69,7 @@
         <ul id="requirementsList"></ul>
       </aside>
       <aside class="panel status">
-        <div class="panel-title"><span>CREW RADIO</span><small>CH. 4</small></div>
+        <div class="panel-title"><span>CREW RADIO</span><small id="cueText">CH. 4 • PREP</small></div>
         <p id="radioText" aria-live="polite">Foreman: Walk the site, then start unloading.</p>
         <div class="load-row">
           <span>CIRCUIT A</span>
@@ -65,6 +80,7 @@
       </aside>
     </section>
   </main>
+  <script src="rules.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

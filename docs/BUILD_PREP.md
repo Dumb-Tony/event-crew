@@ -15,14 +15,17 @@
 - [x] Collision between player, venue fixtures, and large equipment.
 - [x] Contextual target outline and action label.
 - [x] 30-second and 10-second arrival warning cues.
+- [x] Continue crew control through the live event and evaluate three timed ceremony cues.
+- [x] Separate carrying from power operation so powered equipment remains physical.
+- [x] Forgiving snap placement and weighted carry speeds.
 
 ### P1 — make it testable and satisfying
 
-- [ ] Extract game rules into dependency-free modules.
-- [ ] Add unit tests for requirement and power logic.
-- [ ] Add placement magnetism without removing free placement.
-- [ ] Add pause, sound toggle, reduced-chaos and extended-deadline options.
-- [ ] Add work, breaker, crowd, and ceremony audio.
+- [x] Extract core geometry, load, readiness, and grade rules into a dependency-free module.
+- [x] Add unit tests for core requirement, power, geometry, and grade logic.
+- [x] Add placement magnetism without removing free placement.
+- [x] Add pause, sound toggle, and extended-deadline option.
+- [x] Add generated interaction, breaker, warning, and ceremony cue audio.
 - [x] Add crowd avoidance and access-aisle hazard evaluation.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
@@ -71,10 +74,14 @@ The first slice is accepted when:
 - [ ] Breaker interaction restores readiness without silently reconnecting devices.
 - [ ] E reports all currently missing requirement categories.
 - [ ] Timer crosses setup to live exactly once.
+- [ ] Player remains controllable during the live event and can change later cue outcomes.
+- [ ] Procession, vows, and toast each evaluate once at their scheduled timestamp.
 - [ ] Guests continue even with zero completed requirements.
 - [ ] Large misplaced items in the access aisle cause visible guest detours and increase the debrief counter.
 - [ ] Each result tier is reachable.
 - [ ] R and result button produce identical clean initial states.
+- [ ] P freezes both setup/live clocks and Resume restores input focus.
+- [ ] F handles power without preventing unpowered speaker/light pickup.
 
 ### Experience and accessibility
 
@@ -100,10 +107,9 @@ The first slice is accepted when:
 
 - `game.js`: count overloads/interactions; isolate input edge events; add recovery behavior for guests trapped between multiple blockers.
 - `game.js` → `src/data/wedding.js`: extract zone, equipment, deadline, and requirement definitions.
-- `game.js` → `src/rules/*.js`: extract pure placement, power, and grade functions.
-- `styles.css`: add exact contextual prompt treatment and relaxed-time setting controls.
-- `index.html`: add pause/settings dialog and concise audio controls.
-- `tests/`: add browser-native or lightweight test runner only when rule modules exist.
+- `game.js` → `src/data/wedding.js`: extract authored scenario, cue, and equipment data.
+- `game.js`: extract phase/cue transition functions for deterministic tests.
+- `tests/`: add snap-boundary, overload/reset, and cue-timing coverage.
 - `GDD.md`: update scope, controls, and decisions whenever behavior changes.
 
 ## Manual test scenarios
