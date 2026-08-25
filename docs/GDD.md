@@ -162,6 +162,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 | Inspect checklist | E | North face / Tab |
 | Pause | P | Menu |
 | Mute | M | Settings |
+| Gamepad actions | — | Left stick; south carry; west power; east dolly; north checklist; Start pause; Select mute |
 | Restart prototype | R | Pause menu only |
 
 ## Milestones
@@ -193,6 +194,6 @@ Open questions to test, not debate abstractly:
 2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
 3. Add a controlled rain interaction only if wind remains legible in novice playtests.
 4. Tune item locations, carry speeds, and cue timing from three first-time playtests.
-5. Add controller support before attempting local co-op.
-6. Add one lightweight onboarding run that teaches carry, snap, and power in sequence.
+5. Add one lightweight onboarding run that teaches carry, snap, and power in sequence.
+6. Validate standard gamepad mappings on Xbox, PlayStation, and generic browser controllers.
 7. Begin a Unity graybox migration checklist after browser playtest findings stabilize.

@@ -19,6 +19,8 @@ Open `index.html` in a modern desktop browser. No installation, build command, a
 - Toggle sound: M
 - Restart the shift: R
 
+Standard gamepads are supported: left stick moves; south face carries/drops; west face powers/resets; east face takes/parks the dolly; north face checks requirements; Start pauses; Select toggles sound.
+
 The setup deadline is three minutes. The wedding begins when it expires, whether the venue is ready or not.
 
 ## Project map

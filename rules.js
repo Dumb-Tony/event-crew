@@ -14,6 +14,10 @@
     return distance(x, y, closestX, closestY) < radius;
   }
   function totalLoad(items) { return items.filter(item => item.powered).reduce((sum, item) => sum + (item.amps || 0), 0); }
+  function applyDeadzone(value, deadzone = .18) {
+    if (Math.abs(value) <= deadzone) return 0;
+    return Math.sign(value) * (Math.abs(value) - deadzone) / (1 - deadzone);
+  }
   function requirementScore(requirements) {
     return requirements.chairs + requirements.tables + Number(requirements.arch) + Number(requirements.audio) + Number(requirements.cake) + (requirements.sandbags || 0);
   }
@@ -26,5 +30,5 @@
     return { rank: "D", label: "Town folklore" };
   }
 
-  return { clamp, distance, pointInRect, circleHitsRect, totalLoad, requirementScore, gradeJob };
+  return { clamp, distance, pointInRect, circleHitsRect, totalLoad, applyDeadzone, requirementScore, gradeJob };
 });

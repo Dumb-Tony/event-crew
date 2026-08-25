@@ -40,6 +40,7 @@
 - [x] Add a selectable client change-order brief with warning, changed chair marks, and stale-checklist behavior.
 - [x] Surface the device-local crew record on the briefing screen.
 - [x] Track best rank per contract combination and show a causal event timeline in the debrief.
+- [x] Add standard Gamepad API movement/actions with a tested analog deadzone.
 - [ ] Add a randomized “client changed the aisle” variation.
 - [x] Add an authored “client changed the aisle” variation; randomization remains deferred until tuning proves both layouts.
 - [ ] Add a second circuit or generator choice.

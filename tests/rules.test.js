@@ -11,6 +11,8 @@ assert.equal(rules.requirementScore({ chairs: 2, tables: 1, arch: false, audio: 
 assert.equal(rules.circleHitsRect(5, 5, 2, { x: 6, y: 4, w: 3, h: 3 }), true);
 assert.equal(rules.circleHitsRect(0, 0, 2, { x: 6, y: 4, w: 3, h: 3 }), false);
 assert.equal(rules.pointInRect(5, 5, { x: 0, y: 0, w: 10, h: 10 }), true);
+assert.equal(rules.applyDeadzone(.1), 0);
+assert.ok(Math.abs(rules.applyDeadzone(.59) - .5) < .001);
 assert.equal(rules.gradeJob({ readiness: 11, verified: true, cueScore: 3, detours: 0, overloads: 0 }).rank, "S");
 assert.equal(rules.gradeJob({ readiness: 0, verified: false, cueScore: 0, detours: 0, overloads: 0 }).rank, "D");
 

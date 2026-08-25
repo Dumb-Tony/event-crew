@@ -2,7 +2,7 @@
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const { clamp, distance, pointInRect, circleHitsRect, totalLoad, requirementScore, gradeJob } = EventCrewRules;
+const { clamp, distance, pointInRect, circleHitsRect, totalLoad, applyDeadzone, requirementScore, gradeJob } = EventCrewRules;
 const ui = {
   start: document.getElementById("startScreen"), result: document.getElementById("resultScreen"),
   pause: document.getElementById("pauseScreen"),
@@ -29,6 +29,7 @@ const fixedObstacles = [
 let state;
 let audioContext = null;
 let soundOn = true;
+let previousGamepadButtons = [];
 
 function makeState(deadline = 180, windy = false, changeOrder = false) {
   const items = [];
@@ -172,6 +173,8 @@ function applyWindGust(name) {
 function movePlayer(dt) {
   let dx = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
   let dy = Number(keys.has("ArrowDown") || keys.has("KeyS")) - Number(keys.has("ArrowUp") || keys.has("KeyW"));
+  const pad = Array.from(navigator.getGamepads?.() || []).find(Boolean);
+  if (pad && !dx && !dy) { dx = applyDeadzone(pad.axes[0] || 0); dy = applyDeadzone(pad.axes[1] || 0); }
   if (dx || dy) { const n = Math.hypot(dx, dy); dx /= n; dy /= n; }
   const carrying = state.player.held ? carrySpeed(state.player.held.kind) : 1;
   const crowdSlow = state.phase === "ceremony" && state.guests.some(g => distance(g.x, g.y, state.player.x, state.player.y) < 30) ? .58 : 1;
@@ -517,7 +520,21 @@ function togglePause(force) {
   ui.pause.classList.toggle("hidden", !state.paused); if (!state.paused) canvas.focus(); updateUI();
 }
 
-function frame(t) { const dt=Math.min(.05,(t-state.lastTime)/1000||0);state.lastTime=t;update(dt);draw();updateUI();requestAnimationFrame(frame); }
+function pollGamepadActions() {
+  const pad = Array.from(navigator.getGamepads?.() || []).find(Boolean);
+  if (!pad) { previousGamepadButtons = []; return; }
+  const pressed = pad.buttons.map(button => button.pressed);
+  const edge = index => pressed[index] && !previousGamepadButtons[index];
+  if (edge(0)) state.phase === "brief" ? start() : interact();
+  if (edge(2)) powerInteract();
+  if (edge(3)) inspect();
+  if (edge(1)) toolInteract();
+  if (edge(9)) togglePause();
+  if (edge(8)) toggleSound();
+  previousGamepadButtons = pressed;
+}
+
+function frame(t) { const dt=Math.min(.05,(t-state.lastTime)/1000||0);state.lastTime=t;pollGamepadActions();update(dt);draw();updateUI();requestAnimationFrame(frame); }
 function label(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
 window.addEventListener("keydown", e => {
