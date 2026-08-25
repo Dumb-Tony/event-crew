@@ -15,6 +15,12 @@ const ui = {
 const keys = new Set();
 const world = { w: 960, h: 600, deadline: 180, ceremonyLength: 22 };
 const colors = { chair: "#e8e0c6", table: "#a2734f", arch: "#ecd7ac", speaker: "#33383a", cable: "#edb647" };
+const aisle = { x: 310, y: 190, w: 230, h: 235 };
+const fixedObstacles = [
+  { x: 405, y: 478, w: 64, h: 92 },
+  { x: 520, y: 175, w: 380, h: 10 },
+  { x: 520, y: 330, w: 380, h: 10 }
+];
 let state;
 
 function makeState() {
@@ -28,6 +34,7 @@ function makeState() {
   return {
     phase: "brief", time: world.deadline, ceremonyTime: 0, player: { x: 270, y: 450, r: 14, speed: 170, held: null },
     items, verified: false, fuseBlown: false, guests: [], particles: [], warnings: { thirty: false, ten: false },
+    guestDetours: 0, tripHazards: 0,
     radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
@@ -79,10 +86,27 @@ function movePlayer(dt) {
   let dx = Number(keys.has("ArrowRight") || keys.has("KeyD")) - Number(keys.has("ArrowLeft") || keys.has("KeyA"));
   let dy = Number(keys.has("ArrowDown") || keys.has("KeyS")) - Number(keys.has("ArrowUp") || keys.has("KeyW"));
   if (dx || dy) { const n = Math.hypot(dx, dy); dx /= n; dy /= n; }
-  state.player.x = clamp(state.player.x + dx * state.player.speed * dt, 24, world.w - 24);
-  state.player.y = clamp(state.player.y + dy * state.player.speed * dt, 45, world.h - 24);
+  const nextX = clamp(state.player.x + dx * state.player.speed * dt, 24, world.w - 24);
+  const nextY = clamp(state.player.y + dy * state.player.speed * dt, 45, world.h - 24);
+  if (!playerBlocked(nextX, state.player.y)) state.player.x = nextX;
+  if (!playerBlocked(state.player.x, nextY)) state.player.y = nextY;
   if (state.player.held) { state.player.held.x = state.player.x; state.player.held.y = state.player.y - 22; }
 }
+
+function playerBlocked(x, y) {
+  const r = state.player.r;
+  if (fixedObstacles.some(rect => circleHitsRect(x, y, r, rect))) return true;
+  return state.items.some(item => !item.held && itemIsSolid(item) && circleHitsRect(x, y, r, itemRect(item)));
+}
+
+function itemIsSolid(item) { return item.kind !== "chair"; }
+function itemRect(item) { return { x: item.x - item.w / 2, y: item.y - item.h / 2, w: item.w, h: item.h }; }
+function circleHitsRect(x, y, r, rect) {
+  const closestX = clamp(x, rect.x, rect.x + rect.w);
+  const closestY = clamp(y, rect.y, rect.y + rect.h);
+  return distance(x, y, closestX, closestY) < r;
+}
+function pointInRect(x, y, rect) { return x >= rect.x && x <= rect.x + rect.w && y >= rect.y && y <= rect.y + rect.h; }
 
 function interact() {
   if (state.phase !== "setup") return;
@@ -135,8 +159,11 @@ function contextAction() {
 function beginCeremony() {
   state.phase = "ceremony"; state.player.held && (state.player.held.held = false); state.player.held = null;
   const r = requirementState();
-  for (let i = 0; i < 24; i++) state.guests.push({ x: -20 - i * 18, y: 220 + (i % 6) * 35, targetX: 535 + (i % 3) * 70, targetY: 245 + (Math.floor(i / 3) % 2) * 58, speed: 45 + (i % 4) * 4, seated: false });
-  state.radio = r.complete >= 8 ? "Guests entering. Smile like this was always the plan." : "Guests entering. The event is now working around the setup."; updateUI();
+  state.tripHazards = state.items.filter(i => itemIsSolid(i) && pointInRect(i.x, i.y, aisle)).length;
+  for (let i = 0; i < 24; i++) state.guests.push({ x: -20 - i * 18, y: 220 + (i % 6) * 35, targetX: 535 + (i % 3) * 70, targetY: 245 + (Math.floor(i / 3) % 2) * 58, speed: 45 + (i % 4) * 4, seated: false, avoided: [] });
+  if (state.tripHazards) state.radio = `Guests entering. ${state.tripHazards} large ${state.tripHazards === 1 ? "item is" : "items are"} still in the access aisle.`;
+  else state.radio = r.complete >= 8 ? "Guests entering. Smile like this was always the plan." : "Guests entering. The event is now working around the setup.";
+  updateUI();
 }
 
 function moveGuests(dt) {
@@ -144,9 +171,22 @@ function moveGuests(dt) {
     if (g.seated) continue;
     const dx = g.targetX - g.x, dy = g.targetY - g.y, d = Math.hypot(dx,dy);
     if (d < 5) { g.seated = true; continue; }
-    const blocker = state.items.find(i => !i.held && distance(g.x,g.y,i.x,i.y) < 28 && i.kind !== "chair");
-    const bend = blocker ? 55 : 0;
-    g.x += (dx/d * g.speed) * dt; g.y += (dy/d * g.speed + bend) * dt;
+    const blocker = state.items.find(i => !i.held && itemIsSolid(i) && circleHitsRect(g.x, g.y, 24, itemRect(i)));
+    let steerX = dx / d, steerY = dy / d;
+    if (blocker) {
+      const awayX = g.x - blocker.x, awayY = g.y - blocker.y;
+      const awayLength = Math.hypot(awayX, awayY) || 1;
+      steerX += awayX / awayLength * 1.7;
+      steerY += awayY / awayLength * 1.7;
+      if (!g.avoided.includes(blocker.id)) {
+        g.avoided.push(blocker.id);
+        state.guestDetours++;
+        if (state.guestDetours === 1) state.radio = `Guest traffic is diverting around the misplaced ${label(blocker.kind)}.`;
+      }
+    }
+    const steerLength = Math.hypot(steerX, steerY) || 1;
+    g.x += steerX / steerLength * g.speed * dt;
+    g.y += steerY / steerLength * g.speed * dt;
   }
 }
 
@@ -157,7 +197,7 @@ function finish() {
   else if (r.complete >= 7) { title = "The photos will be strategically cropped."; copy = `The ceremony carried on with ${r.chairs} chairs, ${r.tables} tables, ${r.arch ? "an arch" : "no arch"}, and ${r.audio ? "working audio" : "interpretive lip-reading"}.`; }
   else { title = "Legally, it was still a wedding."; copy = "Guests adapted, the couple improvised, and the venue manager learned several new ways to say “unacceptable.” The town will remember this one."; }
   ui.resultTitle.textContent = title; ui.resultCopy.textContent = copy;
-  ui.resultStats.innerHTML = `<span>REQUIREMENTS<strong>${r.complete}/10</strong></span><span>POWER<strong>${r.audio ? "ONLINE" : "DARK"}</strong></span><span>VERIFIED<strong>${state.verified ? "YES" : "NO"}</strong></span>`;
+  ui.resultStats.innerHTML = `<span>REQUIREMENTS<strong>${r.complete}/10</strong></span><span>POWER<strong>${r.audio ? "ONLINE" : "DARK"}</strong></span><span>VERIFIED<strong>${state.verified ? "YES" : "NO"}</strong></span><span>GUEST DETOURS<strong>${state.guestDetours}</strong></span>`;
   ui.result.classList.remove("hidden"); updateUI();
 }
 
@@ -188,7 +228,9 @@ function drawGround() {
   ctx.fillStyle = "#32372f"; ctx.fillRect(0,330,310,22); ctx.fillStyle="#f0a33e"; ctx.font="bold 13px ui-monospace"; ctx.fillText("DELIVERY STAGING",22,345);
   ctx.fillStyle="#393e37"; ctx.fillRect(405,478,64,92); ctx.fillStyle="#f0a33e"; ctx.fillText("15A",424,516); ctx.fillStyle="#ddd"; ctx.fillText("RESET",414,545);
   ctx.fillStyle="#65705d"; ctx.fillRect(520,175,380,10); ctx.fillStyle="#596354"; ctx.fillRect(520,330,380,10);
+  ctx.save(); ctx.setLineDash([10,8]); ctx.strokeStyle="#f0a33e88"; ctx.lineWidth=2; ctx.strokeRect(aisle.x,aisle.y,aisle.w,aisle.h); ctx.restore();
   ctx.fillStyle="#606858"; ctx.font="11px ui-monospace"; ctx.fillText("CEREMONY",535,205); ctx.fillText("RECEPTION",535,365);
+  ctx.fillStyle="#836d45"; ctx.fillText("KEEP ACCESS CLEAR",330,414);
 }
 
 function drawZones() {

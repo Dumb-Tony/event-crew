@@ -12,7 +12,7 @@
 - [x] Requirement inspection and persistent HUD.
 - [x] Live-event phase that uses the current world state.
 - [x] Outcome copy and replay.
-- [ ] Collision between player, venue fixtures, and large equipment.
+- [x] Collision between player, venue fixtures, and large equipment.
 - [x] Contextual target outline and action label.
 - [x] 30-second and 10-second arrival warning cues.
 
@@ -23,7 +23,7 @@
 - [ ] Add placement magnetism without removing free placement.
 - [ ] Add pause, sound toggle, reduced-chaos and extended-deadline options.
 - [ ] Add work, breaker, crowd, and ceremony audio.
-- [ ] Add crowd avoidance and trip-hazard evaluation.
+- [x] Add crowd avoidance and access-aisle hazard evaluation.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
 
@@ -72,6 +72,7 @@ The first slice is accepted when:
 - [ ] E reports all currently missing requirement categories.
 - [ ] Timer crosses setup to live exactly once.
 - [ ] Guests continue even with zero completed requirements.
+- [ ] Large misplaced items in the access aisle cause visible guest detours and increase the debrief counter.
 - [ ] Each result tier is reachable.
 - [ ] R and result button produce identical clean initial states.
 
@@ -97,7 +98,7 @@ The first slice is accepted when:
 
 ## File-level next tasks
 
-- `game.js`: add collision rectangles and crowd detours; count overloads/interactions; isolate input edge events.
+- `game.js`: count overloads/interactions; isolate input edge events; add recovery behavior for guests trapped between multiple blockers.
 - `game.js` → `src/data/wedding.js`: extract zone, equipment, deadline, and requirement definitions.
 - `game.js` → `src/rules/*.js`: extract pure placement, power, and grade functions.
 - `styles.css`: add exact contextual prompt treatment and relaxed-time setting controls.
@@ -112,6 +113,7 @@ The first slice is accepted when:
 3. **No setup:** wait out clock; guests still enter; expect poor result.
 4. **Unverified:** complete layout and sound but never press E; expect readiness but lower narrative result.
 5. **Late drop:** hold an object as time expires; expect it to remain where deadline caught it and event to continue.
+6. **Blocked aisle:** leave a table in the marked access aisle; expect guests to steer around it, radio feedback to identify the cause, and a nonzero detour count.
 
 ## Definition of done for next milestone
 

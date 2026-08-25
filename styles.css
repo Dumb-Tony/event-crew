@@ -62,7 +62,7 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 .meter { height: 8px; background: #111; }
 .meter i { display: block; width: 0; height: 100%; background: var(--green); transition: width .2s; }
 .hint { color: var(--muted); font-size: .72rem; }
-.result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0 24px; }
+.result-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 18px 0 24px; }
 .result-stats span { padding: 10px; border: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
 .result-stats strong { display: block; margin-top: 4px; color: var(--ink); font-size: 1.3rem; }
 
@@ -74,6 +74,7 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
   .masthead .eyebrow { display: none; }
   .deadline strong { font-size: 2rem; }
   .requirements ul { grid-template-columns: 1fr; }
+  .result-stats { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }

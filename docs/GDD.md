@@ -96,6 +96,8 @@ Current scope:
 - Six chairs, two tables, one arch, sound system, decorative lights.
 - 15A circuit. Sound draws 8A; lights draw 9A; powering both trips it.
 - Fixed placement zones with continuous free movement.
+- Solid large equipment and venue fixtures; movement slides along obstacles instead of passing through them.
+- Marked access aisle, guest avoidance of misplaced large equipment, and detour reporting in the debrief.
 - Requirements, radio feedback, end-state evaluation, retry.
 - Contextual interaction labels and world-space highlights for nearby equipment.
 - 30-second and 10-second guest-arrival warnings through the crew radio.
@@ -173,10 +175,10 @@ Open questions to test, not debate abstractly:
 
 ## Next implementation tasks
 
-1. Add item/player collision and make misplaced gear visibly redirect guests.
-2. Add minimal generated work audio for interaction and arrival cues.
-3. Add pause, mute, and a relaxed-time accessibility option.
-4. Extract scenario and requirement data from `game.js`.
-5. Add automated rule tests for placement, power overload/reset, deadline, and scoring.
+1. Add minimal generated work audio for interaction and arrival cues.
+2. Add pause, mute, and a relaxed-time accessibility option.
+3. Extract scenario and requirement data from `game.js`.
+4. Add automated rule tests for placement, power overload/reset, deadline, and scoring.
+5. Count overloads and crew interactions in the debrief.
 6. Tune item locations and player speed from three first-time playtests.
 7. Add one weather variant only after the base completion rate is understood.
