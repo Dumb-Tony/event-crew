@@ -39,6 +39,7 @@
 - [x] Persist completed shifts, best rank/readiness, and cumulative overloads in local browser storage.
 - [x] Add a selectable client change-order brief with warning, changed chair marks, and stale-checklist behavior.
 - [x] Surface the device-local crew record on the briefing screen.
+- [x] Track best rank per contract combination and show a causal event timeline in the debrief.
 - [ ] Add a randomized “client changed the aisle” variation.
 - [x] Add an authored “client changed the aisle” variation; randomization remains deferred until tuning proves both layouts.
 - [ ] Add a second circuit or generator choice.
@@ -91,6 +92,7 @@ The first slice is accepted when:
 - [ ] Rough cake drops and unprotected live-event crowd bumps reduce condition; the dolly prevents crowd-bump damage.
 - [ ] Wind advisory adds two tie-point requirements and unsecured gusts move the arch off its client mark.
 - [ ] Completing a shift updates local career history without affecting clean restart state.
+- [ ] Debrief timeline contains doors-open state and all three cue outcomes in causal order.
 
 ### Experience and accessibility
 

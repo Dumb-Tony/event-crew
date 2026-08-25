@@ -74,6 +74,9 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 .result-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(95px, 1fr)); gap: 8px; margin: 18px 0 24px; }
 .result-stats span { padding: 10px; border: 1px solid var(--line); color: var(--muted); font-size: .7rem; }
 .result-stats strong { display: block; margin-top: 4px; color: var(--ink); font-size: 1.3rem; }
+.result-timeline { display: grid; gap: 5px; margin: 0 0 22px; padding: 12px 12px 12px 32px; border: 1px solid var(--line); background: #151914; color: var(--muted); font: .72rem/1.35 ui-monospace, monospace; }
+.result-timeline li.good { color: var(--green); }
+.result-timeline li.bad { color: #ef8a75; }
 
 @media (max-width: 720px) {
   .shell { padding: 10px; }

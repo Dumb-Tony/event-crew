@@ -110,6 +110,7 @@ Current scope:
 - Rank-based debrief using arrival readiness, three live cues, overloads, detours, and late fixes.
 - Selectable clear-skies or wind-advisory contract. Wind is forecast, warned 20 seconds before impact, and produces two gusts; two physical sandbags prevent the arch from being blown off its mark.
 - Device-local career record for completed shifts, best rank/readiness, and cumulative overloads.
+- Per-contract-combination best ranks and a concise debrief timeline of change orders, weather impacts, overloads, damage, doors opening, and live cue outcomes.
 - Selectable client change-order brief: a warning precedes a mid-setup seating-plan update, chair marks move to widen the aisle, and an earlier verification becomes stale.
 
 Explicit exclusions: networking, full physics engine, inventory economy, saves, touch controls, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred until the authored wedding loop is proven in playtests.
@@ -190,8 +191,8 @@ Open questions to test, not debate abstractly:
 
 1. Extract scenario and requirement data from `game.js`.
 2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
-3. Add best-per-contract records and a compact post-job cause timeline.
-4. Add a controlled rain interaction only if wind remains legible in novice playtests.
-5. Tune item locations, carry speeds, and cue timing from three first-time playtests.
-6. Add controller support before attempting local co-op.
+3. Add a controlled rain interaction only if wind remains legible in novice playtests.
+4. Tune item locations, carry speeds, and cue timing from three first-time playtests.
+5. Add controller support before attempting local co-op.
+6. Add one lightweight onboarding run that teaches carry, snap, and power in sequence.
 7. Begin a Unity graybox migration checklist after browser playtest findings stabilize.

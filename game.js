@@ -13,7 +13,7 @@ const ui = {
   radio: document.getElementById("radioText"), hint: document.getElementById("hintText"),
   loadMeter: document.getElementById("loadMeter"), loadText: document.getElementById("loadText"),
   resultTitle: document.getElementById("resultTitle"), resultCopy: document.getElementById("resultCopy"),
-  resultStats: document.getElementById("resultStats")
+  resultStats: document.getElementById("resultStats"), resultTimeline: document.getElementById("resultTimeline")
 };
 
 const keys = new Set();
@@ -51,6 +51,7 @@ function makeState(deadline = 180, windy = false, changeOrder = false) {
     arrivalReadiness: 0, maxReadiness: windy ? 13 : 11, cakeBumpCooldown: 0, cues: { procession: null, vows: null, toast: null },
     weather: { windy, warned: false, gustOne: false, gustTwo: false },
     changeOrder: { enabled: changeOrder, warned: false, applied: false },
+    eventLog: [],
     radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
@@ -143,6 +144,7 @@ function applyChangeOrder() {
   for (let i=0;i<6;i++) { const z=zones.find(zone=>zone.id===`chair${i}`); z.x=positions[i][0]; z.y=positions[i][1]; }
   if (state.verified) state.verified = false;
   state.radio = "CHANGE ORDER: widen the center aisle. Chair marks updated; prior verification is void.";
+  logEvent("Client moved all chair marks; verification cleared.", "bad");
   addParticle(650, 200, "LAYOUT CHANGED", "#e2634d"); tone(118, .3, "sawtooth", .045);
 }
 
@@ -159,11 +161,12 @@ function updateWeather() {
 function applyWindGust(name) {
   const r = requirementState(), arch = state.items.find(i => i.id === "arch");
   if (r.sandbags === 2 && r.arch) {
-    state.radio = `${name}: the tied-down arch held.`; addParticle(765, 100, "SECURE", "#91bc68"); tone(480, .14, "sine", .035); return;
+    state.radio = `${name}: the tied-down arch held.`; logEvent(`${name}: tied arch held.`, "good"); addParticle(765, 100, "SECURE", "#91bc68"); tone(480, .14, "sine", .035); return;
   }
   if (arch.held) { arch.held = false; state.player.held = null; }
   arch.x = clamp(arch.x + 78, 40, world.w - 40); arch.y = clamp(arch.y + 34, 60, world.h - 30);
   state.radio = `${name}: the unsecured arch was blown off its mark.`; addParticle(arch.x, arch.y, "ARCH MOVED", "#e2634d"); tone(88, .28, "sawtooth", .05);
+  logEvent(`${name}: unsecured arch moved.`, "bad");
 }
 
 function movePlayer(dt) {
@@ -230,6 +233,7 @@ function damageCake(message) {
   if (!cake || cake.durability <= 0) return;
   cake.durability--;
   state.radio = cake.durability > 0 ? `${message} Cake condition: ${cake.durability}/3.` : `${message} The cake is now an abstract dessert.`;
+  logEvent(`Cake condition fell to ${cake.durability}/3.`, "bad");
   addParticle(cake.x, cake.y, cake.durability > 0 ? `CAKE ${cake.durability}/3` : "CAKE RUINED", "#e2634d"); tone(95, .18, "sawtooth", .04);
 }
 
@@ -259,6 +263,7 @@ function powerInteract() {
   if (load > 15) {
     state.fuseBlown = true; state.overloads++; state.items.forEach(i => i.powered = false);
     state.radio = "POP! Circuit A overloaded. Everything on the line went dark."; addParticle(438, 500, "OVERLOAD", "#e2634d"); tone(72, .35, "sawtooth", .055);
+    logEvent("Circuit A overloaded; connected gear went dark.", "bad");
   } else {
     state.radio = `${label(item.kind)} ${item.powered ? "connected" : "disconnected"}. Circuit draw: ${load} amps.`;
     tone(item.powered ? 330 : 170, .07, "square", .025);
@@ -307,6 +312,7 @@ function beginCeremony() {
   if (state.tripHazards) state.radio = `Guests entering. ${state.tripHazards} large ${state.tripHazards === 1 ? "item is" : "items are"} still in the access aisle.`;
   else state.radio = r.complete >= 8 ? "Guests entering. Smile like this was always the plan." : "Guests entering. The event is now working around the setup.";
   addParticle(480, 70, "DOORS OPEN", "#f0a33e"); tone(220, .18, "square", .045);
+  logEvent(`Doors opened at ${r.complete}/${state.maxReadiness} ready.`, r.complete >= state.maxReadiness - 1 ? "good" : "bad");
   updateUI();
 }
 
@@ -315,18 +321,21 @@ function runEventCues() {
   if (state.cues.procession === null && state.ceremonyTime >= 4) {
     state.cues.procession = state.tripHazards === 0 && state.guestDetours < 4;
     state.radio = state.cues.procession ? "Processional moving cleanly. The aisle is doing its one job." : "Processional is bunching up around the equipment. Keep the route clear.";
+    logEvent(state.cues.procession ? "Procession route stayed clear." : "Procession detoured around equipment.", state.cues.procession ? "good" : "bad");
     addParticle(610, 205, state.cues.procession ? "AISLE CLEAR" : "PROCESSION DELAY", state.cues.procession ? "#91bc68" : "#e2634d");
     tone(state.cues.procession ? 520 : 105, .18, "triangle", .04);
   }
   if (state.cues.vows === null && state.ceremonyTime >= 10) {
     state.cues.vows = r.audio;
     state.radio = state.cues.vows ? "Vows are live and audible. Hold the circuit." : "The officiant is speaking. The back row is reading lips.";
+    logEvent(state.cues.vows ? "Vows reached the back row." : "Vows cue occurred without working sound.", state.cues.vows ? "good" : "bad");
     addParticle(760, 145, state.cues.vows ? "VOWS AUDIBLE" : "NO SOUND", state.cues.vows ? "#91bc68" : "#e2634d");
     tone(state.cues.vows ? 680 : 82, .26, state.cues.vows ? "sine" : "sawtooth", .045);
   }
   if (state.cues.toast === null && state.ceremonyTime >= 16) {
     state.cues.toast = r.tables === 2 && r.cake;
     state.radio = state.cues.toast ? "Reception tables and cake are ready for the toast." : "Toast incoming. Catering is improvising the dessert presentation.";
+    logEvent(state.cues.toast ? "Toast had tables and an intact cake." : "Toast lacked tables or an intact cake.", state.cues.toast ? "good" : "bad");
     addParticle(800, 370, state.cues.toast ? "TOAST READY" : "NO TABLE", state.cues.toast ? "#91bc68" : "#e2634d");
     tone(state.cues.toast ? 590 : 120, .18, "triangle", .04);
   }
@@ -364,7 +373,8 @@ function finish() {
   const cueCopy = `${state.cues.procession ? "The procession flowed" : "The procession detoured"}, ${state.cues.vows ? "the vows were heard" : "the vows became mime"}, and ${state.cues.toast ? "the toast had tables" : "catering found a crate"}.`;
   ui.resultTitle.textContent = `${grade.rank} — ${titles[grade.rank]}`; ui.resultCopy.textContent = `${cueCopy} ${grade.label}.`;
   const record = saveCareer(grade.rank, state.arrivalReadiness);
-  ui.resultStats.innerHTML = `<span>RANK<strong>${grade.rank}</strong></span><span>ARRIVAL READY<strong>${state.arrivalReadiness}/${state.maxReadiness}</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>CAREER BEST<strong>${record.bestRank}</strong></span>`;
+  ui.resultStats.innerHTML = `<span>RANK<strong>${grade.rank}</strong></span><span>ARRIVAL READY<strong>${state.arrivalReadiness}/${state.maxReadiness}</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>CONTRACT BEST<strong>${record.contractBest}</strong></span>`;
+  ui.resultTimeline.innerHTML = state.eventLog.slice(-7).map(event => `<li class="${event.status}">${event.text}</li>`).join("");
   ui.result.classList.remove("hidden"); updateUI();
 }
 
@@ -372,13 +382,19 @@ function loadCareer() {
   try { return JSON.parse(localStorage.getItem("eventCrewCareer")) || { shifts: 0, bestRank: "—", bestReadiness: 0, totalOverloads: 0 }; }
   catch { return { shifts: 0, bestRank: "—", bestReadiness: 0, totalOverloads: 0 }; }
 }
+function contractKey() { return `${state.weather.windy ? "wind" : "clear"}-${state.changeOrder.enabled ? "change" : "approved"}`; }
+function betterRank(a, b) { const order = ["S", "A", "B", "C", "D", "—"]; return order.indexOf(a) < order.indexOf(b); }
 function saveCareer(rank, readiness) {
   const record = loadCareer(), order = ["S", "A", "B", "C", "D", "—"];
   record.shifts++; record.bestReadiness = Math.max(record.bestReadiness, readiness); record.totalOverloads += state.overloads;
   if (order.indexOf(rank) < order.indexOf(record.bestRank)) record.bestRank = rank;
+  record.contracts ||= {}; const key = contractKey(); record.contracts[key] ||= { shifts: 0, bestRank: "—" };
+  record.contracts[key].shifts++; if (betterRank(rank, record.contracts[key].bestRank)) record.contracts[key].bestRank = rank;
   try { localStorage.setItem("eventCrewCareer", JSON.stringify(record)); } catch { /* private storage may be unavailable */ }
-  return record;
+  return { ...record, contractBest: record.contracts[key].bestRank };
 }
+
+function logEvent(text, status = "info") { state.eventLog.push({ text, status }); }
 
 function updateUI() {
   const r = requirementState(); const shownTime = state.phase === "ceremony" ? Math.max(0, world.ceremonyLength - state.ceremonyTime) : state.time;
