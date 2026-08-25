@@ -13,6 +13,7 @@ Open `index.html` in a modern desktop browser. No installation, build command, a
 - Move: WASD or arrow keys
 - Pick up or drop: Space
 - Connect power or reset breaker: F
+- Take or park the dolly: G
 - Inspect client requirements: E
 - Pause/resume: P
 - Toggle sound: M
@@ -38,7 +39,7 @@ An initial project setup route was unavailable in the workspace. Because the req
 
 ## Current slice
 
-The implemented loop includes delivery staging, weighted carrying, forgiving target snapping, six chairs, two tables, an arch, movable sound and decorative-light equipment, a 15A circuit and resettable breaker, requirement verification, a hard guest-arrival deadline, and a continuously playable live wedding. Procession, vows, and toast cues judge the state of the venue when each moment occurs; players can keep working through the crowd to rescue later cues. The debrief grades arrival readiness, live cues, overloads, crowd detours, and late fixes.
+The implemented loop includes delivery staging, weighted carrying, a usable dolly, a damageable wedding cake, forgiving target snapping, six chairs, two tables, an arch, movable sound and decorative-light equipment, a 15A circuit and resettable breaker, requirement verification, a hard guest-arrival deadline, and a continuously playable live wedding. Procession, vows, and toast cues judge the state of the venue when each moment occurs; players can keep working through the crowd to rescue later cues. The debrief grades arrival readiness, live cues, overloads, crowd detours, and late fixes.
 
 The prototype includes generated interaction/cue sounds, pause and mute controls, an optional five-minute relaxed shift, solid collision, pure-rule tests, and no build step. Known boundaries: keyboard-first controls, no persistence, no networking, lightweight authored physics, and only one wedding job. Those omissions are prioritized in `docs/BUILD_PREP.md` rather than hidden as implied functionality.
 

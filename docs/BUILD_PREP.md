@@ -33,8 +33,8 @@
 ### P2 — test systemic breadth
 
 - [ ] Add rain as one legible modifier: forecast → warning → wet zones → safe response.
-- [ ] Add dolly with momentum and stacked-chair capacity.
-- [ ] Add fragile cake/decor item with damage feedback.
+- [x] Add a usable dolly with heavy-carry and fragile-cargo benefits; momentum/stacking remain deferred.
+- [x] Add a fragile cake with damage feedback, requirement state, and toast consequence.
 - [ ] Add a randomized “client changed the aisle” variation.
 - [ ] Add a second circuit or generator choice.
 - [ ] Add local two-player keyboard/controller experiment.
@@ -82,6 +82,8 @@ The first slice is accepted when:
 - [ ] R and result button produce identical clean initial states.
 - [ ] P freezes both setup/live clocks and Resume restores input focus.
 - [ ] F handles power without preventing unpowered speaker/light pickup.
+- [ ] G attaches/parks the dolly and changes heavy/fragile carry behavior.
+- [ ] Rough cake drops and unprotected live-event crowd bumps reduce condition; the dolly prevents crowd-bump damage.
 
 ### Experience and accessibility
 
@@ -120,6 +122,8 @@ The first slice is accepted when:
 4. **Unverified:** complete layout and sound but never press E; expect readiness but lower narrative result.
 5. **Late drop:** hold an object as time expires; expect it to remain where deadline caught it and event to continue.
 6. **Blocked aisle:** leave a table in the marked access aisle; expect guests to steer around it, radio feedback to identify the cause, and a nonzero detour count.
+7. **Cake run:** rough-drop the cake three times; expect condition to reach zero, the requirement to remain incomplete, and toast cue failure even on correct placement.
+8. **Protected cargo:** take the dolly, carry the cake through the live crowd, and verify proximity does not damage it.
 
 ## Definition of done for next milestone
 

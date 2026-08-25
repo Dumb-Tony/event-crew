@@ -17,7 +17,7 @@ const ui = {
 
 const keys = new Set();
 const world = { w: 960, h: 600, deadline: 180, ceremonyLength: 22 };
-const colors = { chair: "#e8e0c6", table: "#a2734f", arch: "#ecd7ac", speaker: "#33383a", cable: "#edb647" };
+const colors = { chair: "#e8e0c6", table: "#a2734f", arch: "#ecd7ac", speaker: "#33383a", lights: "#b8a060", cake: "#f4d9df", dolly: "#c46f36", cable: "#edb647" };
 const aisle = { x: 310, y: 190, w: 230, h: 235 };
 const fixedObstacles = [
   { x: 405, y: 478, w: 64, h: 92 },
@@ -36,11 +36,13 @@ function makeState(deadline = 180) {
   items.push({ id: "arch", kind: "arch", x: 95, y: 545, w: 62, h: 20, held: false });
   items.push({ id: "speaker", kind: "speaker", x: 188, y: 545, w: 24, h: 30, held: false, amps: 8, powered: false });
   items.push({ id: "lights", kind: "lights", x: 226, y: 545, w: 30, h: 18, held: false, amps: 9, powered: false });
+  items.push({ id: "cake", kind: "cake", x: 247, y: 480, w: 28, h: 28, held: false, fragile: true, durability: 3 });
+  items.push({ id: "dolly", kind: "dolly", x: 270, y: 548, w: 25, h: 42, held: false, equipped: false });
   return {
-    phase: "brief", time: deadline, ceremonyTime: 0, paused: false, player: { x: 270, y: 450, r: 14, speed: 170, held: null },
+    phase: "brief", time: deadline, ceremonyTime: 0, paused: false, player: { x: 270, y: 450, r: 14, speed: 170, held: null, dolly: null },
     items, verified: false, fuseBlown: false, guests: [], particles: [], warnings: { thirty: false, ten: false },
     guestDetours: 0, tripHazards: 0, overloads: 0, interactions: 0, snaps: 0, liveFixes: 0,
-    arrivalReadiness: 0, cues: { procession: null, vows: null, toast: null },
+    arrivalReadiness: 0, maxReadiness: 11, cakeBumpCooldown: 0, cues: { procession: null, vows: null, toast: null },
     radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
@@ -50,6 +52,7 @@ const zones = [
   { id: "table0", kind: "table", x: 700, y: 390, w: 90, h: 58, label: "TABLE" },
   { id: "table1", kind: "table", x: 812, y: 390, w: 90, h: 58, label: "TABLE" },
   { id: "speaker", kind: "speaker", x: 885, y: 215, w: 48, h: 64, label: "SOUND" },
+  { id: "cake", kind: "cake", x: 790, y: 475, w: 74, h: 54, label: "CAKE" },
   ...Array.from({ length: 6 }, (_, i) => ({ id: `chair${i}`, kind: "chair", x: 560 + (i % 3) * 70, y: 245 + Math.floor(i / 3) * 58, w: 38, h: 38, label: String(i + 1) }))
 ];
 
@@ -67,15 +70,18 @@ function requirementState() {
   const tables = [placed.table0, placed.table1].filter(Boolean).length;
   const arch = placed.arch;
   const speaker = state.items.find(i => i.id === "speaker");
+  const cakeItem = state.items.find(i => i.id === "cake");
   const load = totalLoad(state.items);
   const audio = placed.speaker && speaker.powered && !state.fuseBlown;
-  const result = { chairs, tables, arch, audio, safePower: load <= 15 && !state.fuseBlown, load };
+  const cake = placed.cake && cakeItem.durability > 0;
+  const result = { chairs, tables, arch, audio, cake, safePower: load <= 15 && !state.fuseBlown, load };
   result.complete = requirementScore(result);
   return result;
 }
 
 function update(dt) {
   if (state.paused) return;
+  state.cakeBumpCooldown = Math.max(0, state.cakeBumpCooldown - dt);
   if (state.phase === "setup") {
     state.time = Math.max(0, state.time - dt);
     movePlayer(dt);
@@ -110,14 +116,21 @@ function movePlayer(dt) {
   if (!playerBlocked(nextX, state.player.y)) state.player.x = nextX;
   if (!playerBlocked(state.player.x, nextY)) state.player.y = nextY;
   if (state.player.held) { state.player.held.x = state.player.x; state.player.held.y = state.player.y - 22; }
+  if (state.player.dolly) { state.player.dolly.x = state.player.x; state.player.dolly.y = state.player.y + 25; }
+  if (state.phase === "ceremony" && state.player.held?.fragile && !state.player.dolly && state.cakeBumpCooldown <= 0 && state.guests.some(g => distance(g.x, g.y, state.player.x, state.player.y) < 25)) {
+    damageCake("A guest clipped the cake carrier in the crowd."); state.cakeBumpCooldown = 1.2;
+  }
 }
 
-function carrySpeed(kind) { return kind === "chair" ? .88 : kind === "speaker" || kind === "lights" ? .76 : .62; }
+function carrySpeed(kind) {
+  if (state.player.dolly) return kind === "chair" ? 1 : kind === "table" || kind === "arch" ? .84 : .9;
+  return kind === "chair" ? .88 : kind === "speaker" || kind === "lights" ? .76 : kind === "cake" ? .56 : .62;
+}
 
 function playerBlocked(x, y) {
   const r = state.player.r;
   if (fixedObstacles.some(rect => circleHitsRect(x, y, r, rect))) return true;
-  return state.items.some(item => !item.held && itemIsSolid(item) && circleHitsRect(x, y, r, itemRect(item)));
+  return state.items.some(item => !item.held && !item.equipped && itemIsSolid(item) && circleHitsRect(x, y, r, itemRect(item)));
 }
 
 function itemIsSolid(item) { return item.kind !== "chair"; }
@@ -145,8 +158,29 @@ function dropHeldItem() {
     state.radio = `${label(item.kind)} locked to the client mark.`; addParticle(item.x, item.y, "READY", "#91bc68"); tone(520, .08, "sine", .035);
   } else {
     state.radio = `${label(item.kind)} placed off-plan. The client mark is still open.`; tone(190, .05, "triangle", .018);
+    if (item.fragile) damageCake("The cake took damage from a rough off-plan drop.");
   }
   recordInteraction(); updateUI();
+}
+
+function damageCake(message) {
+  const cake = state.items.find(i => i.id === "cake");
+  if (!cake || cake.durability <= 0) return;
+  cake.durability--;
+  state.radio = cake.durability > 0 ? `${message} Cake condition: ${cake.durability}/3.` : `${message} The cake is now an abstract dessert.`;
+  addParticle(cake.x, cake.y, cake.durability > 0 ? `CAKE ${cake.durability}/3` : "CAKE RUINED", "#e2634d"); tone(95, .18, "sawtooth", .04);
+}
+
+function toolInteract() {
+  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  const dolly = state.items.find(i => i.id === "dolly");
+  if (state.player.dolly) {
+    dolly.equipped = false; dolly.x = state.player.x; dolly.y = state.player.y + 30; state.player.dolly = null;
+    state.radio = "Dolly parked. Heavy carries are back to being heavy."; tone(145, .06, "square", .02); return;
+  }
+  if (distance(state.player.x, state.player.y, dolly.x, dolly.y) < 52) {
+    dolly.equipped = true; state.player.dolly = dolly; state.radio = "Dolly attached. Heavy gear moves faster and fragile cargo is protected from crowd bumps."; tone(410, .08, "triangle", .025); recordInteraction();
+  } else state.radio = "Move near the dolly to take it.";
 }
 
 function powerInteract() {
@@ -173,7 +207,7 @@ function powerInteract() {
 function recordInteraction() { state.interactions++; if (state.phase === "ceremony") state.liveFixes++; }
 function nearestItem(range = Infinity) {
   const p = state.player;
-  const item = state.items.filter(i => !i.held).sort((a,b) => distance(p.x,p.y,a.x,a.y)-distance(p.x,p.y,b.x,b.y))[0];
+  const item = state.items.filter(i => !i.held && i.kind !== "dolly").sort((a,b) => distance(p.x,p.y,a.x,a.y)-distance(p.x,p.y,b.x,b.y))[0];
   return item && distance(p.x, p.y, item.x, item.y) <= range ? item : null;
 }
 
@@ -182,7 +216,7 @@ function inspect() {
   const r = requirementState(); state.verified = true;
   const missing = [];
   if (!r.arch) missing.push("arch"); if (r.tables < 2) missing.push(`${2-r.tables} table${2-r.tables === 1 ? "" : "s"}`);
-  if (r.chairs < 6) missing.push(`${6-r.chairs} chair${6-r.chairs === 1 ? "" : "s"}`); if (!r.audio) missing.push("sound");
+  if (r.chairs < 6) missing.push(`${6-r.chairs} chair${6-r.chairs === 1 ? "" : "s"}`); if (!r.audio) missing.push("sound"); if (!r.cake) missing.push("intact cake");
   state.radio = missing.length ? `Checklist: still missing ${missing.join(", ")}.` : "Checklist verified. We could almost look professional."; tone(missing.length ? 150 : 620, .09, "triangle", .025); recordInteraction(); updateUI();
 }
 
@@ -190,20 +224,22 @@ function contextAction() {
   if (state.phase !== "setup" && state.phase !== "ceremony") return null;
   const p = state.player;
   if (p.held) return { type: "held", item: p.held, text: `SPACE drop ${label(p.held.kind)}` };
+  const dolly = state.items.find(i => i.id === "dolly");
+  if (!p.dolly && distance(p.x, p.y, dolly.x, dolly.y) < 52) return { type: "item", item: dolly, text: "G take dolly" };
   if (state.fuseBlown && distance(p.x, p.y, 438, 525) < 48) return { type: "breaker", x: 438, y: 525, text: "F reset breaker" };
   const nearest = nearestItem(48);
   if (nearest) {
     const powerText = nearest.amps ? ` • F ${nearest.powered ? "disconnect" : "connect"}` : "";
     return { type: "item", item: nearest, text: `SPACE ${nearest.powered ? "disconnect first" : `pick up ${label(nearest.kind)}`}${powerText}` };
   }
-  return { type: "none", text: "Move near equipment • SPACE carry • F power • E inspect • P pause" };
+  return { type: "none", text: `${p.dolly ? "G park dolly • " : ""}SPACE carry • F power • E inspect • P pause` };
 }
 
 function beginCeremony() {
   state.phase = "ceremony";
   const r = requirementState();
   state.arrivalReadiness = r.complete;
-  state.tripHazards = state.items.filter(i => itemIsSolid(i) && pointInRect(i.x, i.y, aisle)).length;
+  state.tripHazards = state.items.filter(i => itemIsSolid(i) && i.kind !== "dolly" && pointInRect(i.x, i.y, aisle)).length;
   for (let i = 0; i < 24; i++) state.guests.push({ x: -20 - i * 18, y: 220 + (i % 6) * 35, targetX: 535 + (i % 3) * 70, targetY: 245 + (Math.floor(i / 3) % 2) * 58, speed: 45 + (i % 4) * 4, seated: false, avoided: [] });
   if (state.tripHazards) state.radio = `Guests entering. ${state.tripHazards} large ${state.tripHazards === 1 ? "item is" : "items are"} still in the access aisle.`;
   else state.radio = r.complete >= 8 ? "Guests entering. Smile like this was always the plan." : "Guests entering. The event is now working around the setup.";
@@ -226,8 +262,8 @@ function runEventCues() {
     tone(state.cues.vows ? 680 : 82, .26, state.cues.vows ? "sine" : "sawtooth", .045);
   }
   if (state.cues.toast === null && state.ceremonyTime >= 16) {
-    state.cues.toast = r.tables === 2;
-    state.radio = state.cues.toast ? "Reception tables are ready for the toast." : "Toast incoming. Catering is improvising a flat surface.";
+    state.cues.toast = r.tables === 2 && r.cake;
+    state.radio = state.cues.toast ? "Reception tables and cake are ready for the toast." : "Toast incoming. Catering is improvising the dessert presentation.";
     addParticle(800, 370, state.cues.toast ? "TOAST READY" : "NO TABLE", state.cues.toast ? "#91bc68" : "#e2634d");
     tone(state.cues.toast ? 590 : 120, .18, "triangle", .04);
   }
@@ -238,7 +274,7 @@ function moveGuests(dt) {
     if (g.seated) continue;
     const dx = g.targetX - g.x, dy = g.targetY - g.y, d = Math.hypot(dx,dy);
     if (d < 5) { g.seated = true; continue; }
-    const blocker = state.items.find(i => !i.held && itemIsSolid(i) && circleHitsRect(g.x, g.y, 24, itemRect(i)));
+    const blocker = state.items.find(i => !i.held && !i.equipped && itemIsSolid(i) && circleHitsRect(g.x, g.y, 24, itemRect(i)));
     let steerX = dx / d, steerY = dy / d;
     if (blocker) {
       const awayX = g.x - blocker.x, awayY = g.y - blocker.y;
@@ -260,11 +296,11 @@ function moveGuests(dt) {
 function finish() {
   state.phase = "result"; const r = requirementState();
   const cueScore = Object.values(state.cues).filter(Boolean).length;
-  const grade = gradeJob({ readiness: state.arrivalReadiness, verified: state.verified, cueScore, detours: state.guestDetours, overloads: state.overloads });
+  const grade = gradeJob({ readiness: state.arrivalReadiness, maxReadiness: state.maxReadiness, verified: state.verified, cueScore, detours: state.guestDetours, overloads: state.overloads });
   const titles = { S: "A suspiciously competent wedding.", A: "The client would actually rebook.", B: "The photos will be strategically cropped.", C: "Legally, it was still a wedding.", D: "Rookery County has a new cautionary tale." };
   const cueCopy = `${state.cues.procession ? "The procession flowed" : "The procession detoured"}, ${state.cues.vows ? "the vows were heard" : "the vows became mime"}, and ${state.cues.toast ? "the toast had tables" : "catering found a crate"}.`;
   ui.resultTitle.textContent = `${grade.rank} — ${titles[grade.rank]}`; ui.resultCopy.textContent = `${cueCopy} ${grade.label}.`;
-  ui.resultStats.innerHTML = `<span>ARRIVAL READY<strong>${state.arrivalReadiness}/10</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>LATE FIXES<strong>${state.liveFixes}</strong></span>`;
+  ui.resultStats.innerHTML = `<span>ARRIVAL READY<strong>${state.arrivalReadiness}/${state.maxReadiness}</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>LATE FIXES<strong>${state.liveFixes}</strong></span>`;
   ui.result.classList.remove("hidden"); updateUI();
 }
 
@@ -275,9 +311,10 @@ function updateUI() {
   ui.deadlineCaption.textContent = state.phase === "ceremony" ? "CEREMONY LIVE" : state.phase === "result" ? "SHIFT COMPLETE" : "UNTIL GUESTS";
   const nextCue = state.phase !== "ceremony" ? "PREP" : state.cues.procession === null ? "PROCESSION" : state.cues.vows === null ? "VOWS" : state.cues.toast === null ? "TOAST" : "WRAP";
   ui.cue.textContent = `CH. 4 • ${nextCue}`;
-  const reqs = [["Ceremony arch", r.arch], [`Chairs ${r.chairs} / 6`, r.chairs === 6], [`Tables ${r.tables} / 2`, r.tables === 2], ["Sound system powered", r.audio], ["Final checklist verified", state.verified]];
+  const cake = state.items.find(i => i.id === "cake");
+  const reqs = [["Ceremony arch", r.arch], [`Chairs ${r.chairs} / 6`, r.chairs === 6], [`Tables ${r.tables} / 2`, r.tables === 2], ["Sound placed + powered", r.audio], [`Cake intact ${cake.durability} / 3`, r.cake], ["Final checklist verified", state.verified]];
   ui.reqs.innerHTML = reqs.map(([text,done]) => `<li class="${done ? "done" : ""}">${text}</li>`).join("");
-  ui.score.textContent = `${r.complete} / 10 READY`;
+  ui.score.textContent = `${r.complete} / ${state.maxReadiness} READY`;
   ui.radio.textContent = state.radio; ui.loadText.textContent = `${r.load} / 15A`; ui.loadMeter.style.width = `${Math.min(100, r.load / 15 * 100)}%`;
   ui.loadMeter.style.background = state.fuseBlown ? "#e2634d" : r.load > 12 ? "#f0a33e" : "#91bc68";
   const action = contextAction();
@@ -322,6 +359,8 @@ function drawItem(i) {
   if(i.kind==="chair"){ctx.fillRect(-9,-9,18,15);ctx.strokeRect(-9,-9,18,15);ctx.fillRect(-9,6,3,7);ctx.fillRect(6,6,3,7);}
   else if(i.kind==="table"){ctx.beginPath();ctx.ellipse(0,0,27,16,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
   else if(i.kind==="arch"){ctx.lineWidth=8;ctx.strokeStyle=colors.arch;ctx.beginPath();ctx.arc(0,19,28,Math.PI,0);ctx.lineTo(28,22);ctx.moveTo(-28,19);ctx.lineTo(-28,22);ctx.stroke();}
+  else if(i.kind==="cake"){ctx.fillRect(-14,-7,28,15);ctx.strokeRect(-14,-7,28,15);ctx.fillStyle="#fff3";ctx.fillRect(-10,-13,20,7);ctx.fillStyle=i.durability>0?"#91bc68":"#e2634d";ctx.fillRect(-12,11,24*(i.durability/3),3);}
+  else if(i.kind==="dolly"){ctx.fillRect(-11,-19,22,30);ctx.strokeRect(-11,-19,22,30);ctx.fillStyle="#252923";ctx.beginPath();ctx.arc(-10,15,5,0,Math.PI*2);ctx.arc(10,15,5,0,Math.PI*2);ctx.fill();}
   else {ctx.fillRect(-i.w/2,-i.h/2,i.w,i.h);ctx.strokeRect(-i.w/2,-i.h/2,i.w,i.h); if(i.amps){ctx.fillStyle=i.powered?"#91bc68":"#d2cda9";ctx.fillRect(-5,-4,10,7);}}
   ctx.restore();
 }
@@ -381,7 +420,7 @@ window.addEventListener("keydown", e => {
   if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code))e.preventDefault();
   if (state.paused && !["KeyP","KeyR","KeyM"].includes(e.code)) return;
   keys.add(e.code);
-  if(!e.repeat&&e.code==="Space")interact(); if(!e.repeat&&e.code==="KeyF")powerInteract(); if(!e.repeat&&e.code==="KeyE")inspect();
+  if(!e.repeat&&e.code==="Space")interact(); if(!e.repeat&&e.code==="KeyF")powerInteract(); if(!e.repeat&&e.code==="KeyG")toolInteract(); if(!e.repeat&&e.code==="KeyE")inspect();
   if(!e.repeat&&e.code==="KeyP")togglePause(); if(!e.repeat&&e.code==="KeyM")toggleSound(); if(!e.repeat&&e.code==="KeyR")start();
 });
 window.addEventListener("keyup", e => keys.delete(e.code));

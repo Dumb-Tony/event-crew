@@ -94,6 +94,8 @@ Current scope:
 - Three-minute real-time setup phase and 22-second live-event phase.
 - Move; weighted pick up/drop; snap to client marks; separately connect/disconnect power; reset breaker; inspect checklist.
 - Six chairs, two tables, one arch, sound system, decorative lights.
+- One fragile wedding cake with three-step condition and an authored reception target.
+- One usable dolly that improves heavy-carry speed and protects fragile cargo from crowd bumps.
 - 15A circuit. Sound draws 8A; lights draw 9A; powering both trips it.
 - Fixed placement zones with continuous free movement.
 - Solid large equipment and venue fixtures; movement slides along obstacles instead of passing through them.
@@ -152,6 +154,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 | Move | WASD / arrows | Left stick / WASD |
 | Pick up / drop | Space | South face / E |
 | Connect / disconnect / breaker | F | West face / F |
+| Take / park dolly | G | East face / G |
 | Inspect checklist | E | North face / Tab |
 | Pause | P | Menu |
 | Mute | M | Settings |
@@ -161,7 +164,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 
 1. **M0 — Loop proof (complete):** one job, deadline, placement, constrained power, checklist, live event, debrief.
 2. **M1 — Legibility pass (substantially complete):** contextual outlines, collision/route blocking, audio, warnings, pause, relaxed timer, cue-based consequences, rule tests. Remaining gate: novice playtests and pacing tune.
-3. **M2 — Systems proof (1–2 weeks):** second job variant, rain/wind, fragile props, dolly, sequential dependencies, simple scoring and local save.
+3. **M2 — Systems proof (in progress):** fragile cake, usable dolly, and cue scoring implemented; second variation, rain/wind, progression history, and additional dependencies remain.
 4. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
 5. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
 
@@ -184,8 +187,8 @@ Open questions to test, not debate abstractly:
 
 1. Extract scenario and requirement data from `game.js`.
 2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
-3. Add a fragile wedding cake and a dolly as the first damage/tool interaction pair.
-4. Add one forecasted wind/rain variant with a clear preventative response.
-5. Add local completion history and best-rank persistence.
+3. Add one forecasted wind/rain variant with a clear preventative response.
+4. Add local completion history and best-rank persistence.
+5. Add a second authored brief variation using the same venue systems.
 6. Tune item locations, carry speeds, and cue timing from three first-time playtests.
 7. Add controller support before attempting local co-op.
