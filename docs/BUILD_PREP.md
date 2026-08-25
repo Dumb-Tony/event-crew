@@ -13,8 +13,8 @@
 - [x] Live-event phase that uses the current world state.
 - [x] Outcome copy and replay.
 - [ ] Collision between player, venue fixtures, and large equipment.
-- [ ] Contextual target outline and action label.
-- [ ] Arrival warning cues.
+- [x] Contextual target outline and action label.
+- [x] 30-second and 10-second arrival warning cues.
 
 ### P1 — make it testable and satisfying
 

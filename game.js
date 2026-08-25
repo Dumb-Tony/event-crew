@@ -27,7 +27,8 @@ function makeState() {
   items.push({ id: "lights", kind: "lights", x: 226, y: 545, w: 30, h: 18, held: false, amps: 9, powered: false });
   return {
     phase: "brief", time: world.deadline, ceremonyTime: 0, player: { x: 270, y: 450, r: 14, speed: 170, held: null },
-    items, verified: false, fuseBlown: false, guests: [], particles: [], radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
+    items, verified: false, fuseBlown: false, guests: [], particles: [], warnings: { thirty: false, ten: false },
+    radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
 
@@ -58,6 +59,14 @@ function update(dt) {
   if (state.phase === "setup") {
     state.time = Math.max(0, state.time - dt);
     movePlayer(dt);
+    if (!state.warnings.thirty && state.time <= 30) {
+      state.warnings.thirty = true;
+      state.radio = "Thirty seconds. The first guest car just turned into the drive.";
+    }
+    if (!state.warnings.ten && state.time <= 10) {
+      state.warnings.ten = true;
+      state.radio = "Ten seconds. Crew clear the aisle—guests are at the door.";
+    }
     if (state.time <= 0) beginCeremony();
   } else if (state.phase === "ceremony") {
     state.ceremonyTime += dt;
@@ -109,6 +118,20 @@ function inspect() {
   state.radio = missing.length ? `Checklist: still missing ${missing.join(", ")}.` : "Checklist verified. We could almost look professional."; updateUI();
 }
 
+function contextAction() {
+  if (state.phase !== "setup") return null;
+  const p = state.player;
+  if (p.held) return { type: "held", item: p.held, text: `SPACE drop ${label(p.held.kind)}` };
+  if (state.fuseBlown && distance(p.x, p.y, 438, 525) < 48) return { type: "breaker", x: 438, y: 525, text: "SPACE reset breaker" };
+  const powerItem = state.items.filter(i => i.amps).sort((a,b) => distance(p.x,p.y,a.x,a.y)-distance(p.x,p.y,b.x,b.y))[0];
+  if (powerItem && distance(p.x, p.y, powerItem.x, powerItem.y) < 48) {
+    return { type: "item", item: powerItem, text: `SPACE ${powerItem.powered ? "disconnect" : "connect"} ${label(powerItem.kind)}` };
+  }
+  const nearest = state.items.filter(i => !i.powered).sort((a,b) => distance(p.x,p.y,a.x,a.y)-distance(p.x,p.y,b.x,b.y))[0];
+  if (nearest && distance(p.x, p.y, nearest.x, nearest.y) < 48) return { type: "item", item: nearest, text: `SPACE pick up ${label(nearest.kind)}` };
+  return { type: "none", text: "Move near equipment • E inspect checklist • R restart" };
+}
+
 function beginCeremony() {
   state.phase = "ceremony"; state.player.held && (state.player.held.held = false); state.player.held = null;
   const r = requirementState();
@@ -147,12 +170,13 @@ function updateUI() {
   ui.score.textContent = `${r.complete} / 10 READY`;
   ui.radio.textContent = state.radio; ui.loadText.textContent = `${r.load} / 15A`; ui.loadMeter.style.width = `${Math.min(100, r.load / 15 * 100)}%`;
   ui.loadMeter.style.background = state.fuseBlown ? "#e2634d" : r.load > 12 ? "#f0a33e" : "#91bc68";
-  ui.hint.textContent = state.phase === "setup" ? "SPACE interact • E inspect checklist • R restart" : state.phase === "ceremony" ? "The event proceeds with what you built." : "Shift complete.";
+  const action = contextAction();
+  ui.hint.textContent = state.phase === "setup" ? action.text : state.phase === "ceremony" ? "The event proceeds with what you built." : "Shift complete.";
 }
 
 function draw() {
   ctx.clearRect(0,0,world.w,world.h); drawGround(); drawZones(); drawPower();
-  state.items.forEach(drawItem); state.guests.forEach(drawGuest); if (state.phase !== "ceremony" && state.phase !== "result") drawPlayer();
+  state.items.forEach(drawItem); state.guests.forEach(drawGuest); drawContextHighlight(); if (state.phase !== "ceremony" && state.phase !== "result") drawPlayer();
   if (state.fuseBlown) { ctx.fillStyle = "#12141bbb"; ctx.fillRect(315,40,645,560); }
 }
 
@@ -187,6 +211,21 @@ function drawItem(i) {
   else if(i.kind==="table"){ctx.beginPath();ctx.ellipse(0,0,27,16,0,0,Math.PI*2);ctx.fill();ctx.stroke();}
   else if(i.kind==="arch"){ctx.lineWidth=8;ctx.strokeStyle=colors.arch;ctx.beginPath();ctx.arc(0,19,28,Math.PI,0);ctx.lineTo(28,22);ctx.moveTo(-28,19);ctx.lineTo(-28,22);ctx.stroke();}
   else {ctx.fillRect(-i.w/2,-i.h/2,i.w,i.h);ctx.strokeRect(-i.w/2,-i.h/2,i.w,i.h); if(i.amps){ctx.fillStyle=i.powered?"#91bc68":"#d2cda9";ctx.fillRect(-5,-4,10,7);}}
+  ctx.restore();
+}
+
+function drawContextHighlight() {
+  const action = contextAction();
+  if (!action || action.type === "none" || action.type === "held") return;
+  const x = action.item ? action.item.x : action.x;
+  const y = action.item ? action.item.y : action.y;
+  ctx.save();
+  ctx.strokeStyle = "#f0a33e";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([5, 4]);
+  ctx.beginPath();
+  ctx.arc(x, y, 28, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 

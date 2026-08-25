@@ -97,6 +97,8 @@ Current scope:
 - 15A circuit. Sound draws 8A; lights draw 9A; powering both trips it.
 - Fixed placement zones with continuous free movement.
 - Requirements, radio feedback, end-state evaluation, retry.
+- Contextual interaction labels and world-space highlights for nearby equipment.
+- 30-second and 10-second guest-arrival warnings through the crew radio.
 - Guests walk into the player-authored layout when time expires.
 
 Explicit exclusions: networking, physics engine, inventory economy, saves, touch controls, audio, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred to protect a quick satisfying loop.
@@ -172,10 +174,9 @@ Open questions to test, not debate abstractly:
 ## Next implementation tasks
 
 1. Add item/player collision and make misplaced gear visibly redirect guests.
-2. Add 30/10-second arrival warnings and minimal generated work audio.
-3. Add interactable highlight and exact contextual prompt.
-4. Add pause, mute, and a relaxed-time accessibility option.
-5. Extract scenario and requirement data from `game.js`.
-6. Add automated rule tests for placement, power overload/reset, deadline, and scoring.
-7. Tune item locations and player speed from three first-time playtests.
-8. Add one weather variant only after the base completion rate is understood.
+2. Add minimal generated work audio for interaction and arrival cues.
+3. Add pause, mute, and a relaxed-time accessibility option.
+4. Extract scenario and requirement data from `game.js`.
+5. Add automated rule tests for placement, power overload/reset, deadline, and scoring.
+6. Tune item locations and player speed from three first-time playtests.
+7. Add one weather variant only after the base completion rate is understood.
