@@ -2,7 +2,9 @@
 
 A dependency-free browser prototype and living design package for a cooperative event-setup game.
 
-> **Play online:** GitHub Pages URL will be added here immediately after the public repository is connected and Pages is enabled.
+> **Play online:** https://dumb-tony.github.io/event-crew/
+
+**Source and design:** https://github.com/Dumb-Tony/event-crew
 
 ## Play
 

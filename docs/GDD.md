@@ -8,6 +8,8 @@
 
 **Repository policy:** `C:\Dev\event-crew` is the canonical working copy. `main` is the primary Git branch. The source and design documents are intended for a public GitHub repository named `event-crew`; the dependency-free prototype is published from the repository root through GitHub Pages so playtesters always have a reproducible browser build. The living GDD stays under version control at `docs/GDD.md` and changes alongside implemented design decisions.
 
+**Public endpoints:** source and design at `https://github.com/Dumb-Tony/event-crew`; playable prototype at `https://dumb-tony.github.io/event-crew/`.
+
 ## Product definition
 
 EVENT CREW is a 2–5 player cooperative work-comedy game about building weddings, concerts, festivals, conferences, parties, and sporting events before the public arrives. The clock never negotiates. Players unload, assemble, route power, decorate, test, repair, and improvise; when the deadline reaches zero, the event begins in the condition they created rather than cutting to a binary win/lose screen.
