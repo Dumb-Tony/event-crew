@@ -51,6 +51,7 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 .option input { width: 17px; height: 17px; accent-color: var(--orange); }
 .brief-options { display: flex; flex-wrap: wrap; gap: 8px 24px; }
 .option select { border: 1px solid var(--line); padding: 7px 10px; background: #171b16; color: var(--ink); font: inherit; }
+.career-line { margin-bottom: 18px; color: var(--green) !important; font: 700 .75rem/1.4 ui-monospace, monospace; }
 .pause-card { max-width: 520px; }
 .pause-card small { display: block; color: var(--muted); }
 

@@ -37,7 +37,10 @@
 - [x] Add a fragile cake with damage feedback, requirement state, and toast consequence.
 - [x] Add a selectable wind-advisory contract with forecast, advance warning, two gusts, and physical sandbag prevention.
 - [x] Persist completed shifts, best rank/readiness, and cumulative overloads in local browser storage.
+- [x] Add a selectable client change-order brief with warning, changed chair marks, and stale-checklist behavior.
+- [x] Surface the device-local crew record on the briefing screen.
 - [ ] Add a randomized “client changed the aisle” variation.
+- [x] Add an authored “client changed the aisle” variation; randomization remains deferred until tuning proves both layouts.
 - [ ] Add a second circuit or generator choice.
 - [ ] Add local two-player keyboard/controller experiment.
 
@@ -132,6 +135,7 @@ Append `?qa=1` to the local or Pages URL to reduce setup to two seconds while pr
 8. **Protected cargo:** take the dolly, carry the cake through the live crowd, and verify proximity does not damage it.
 9. **Wind prevention:** choose Wind Advisory, secure both arch tie points, and expect both gusts to leave a correctly placed arch unchanged.
 10. **Wind recovery:** leave the arch unsecured through the first gust, then replace and tie it before the second gust; expect only one displacement.
+11. **Change order:** choose Pending Change Order, verify early, and wait for the new plan; expect chair marks to move, verification to clear, and the HUD to show PLAN B.
 
 ## Definition of done for next milestone
 

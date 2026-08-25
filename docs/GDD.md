@@ -110,6 +110,7 @@ Current scope:
 - Rank-based debrief using arrival readiness, three live cues, overloads, detours, and late fixes.
 - Selectable clear-skies or wind-advisory contract. Wind is forecast, warned 20 seconds before impact, and produces two gusts; two physical sandbags prevent the arch from being blown off its mark.
 - Device-local career record for completed shifts, best rank/readiness, and cumulative overloads.
+- Selectable client change-order brief: a warning precedes a mid-setup seating-plan update, chair marks move to widen the aisle, and an earlier verification becomes stale.
 
 Explicit exclusions: networking, full physics engine, inventory economy, saves, touch controls, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred until the authored wedding loop is proven in playtests.
 
@@ -166,7 +167,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 
 1. **M0 — Loop proof (complete):** one job, deadline, placement, constrained power, checklist, live event, debrief.
 2. **M1 — Legibility pass (substantially complete):** contextual outlines, collision/route blocking, audio, warnings, pause, relaxed timer, cue-based consequences, rule tests. Remaining gate: novice playtests and pacing tune.
-3. **M2 — Systems proof (substantially complete):** fragile cake, usable dolly, cue scoring, forecasted wind variation, physical prevention, and local career history implemented. Remaining gate: second brief and playtest tuning.
+3. **M2 — Systems proof (feature complete, tuning pending):** fragile cake, usable dolly, cue scoring, forecasted wind variation, physical prevention, client change-order brief, and visible local career history implemented. Remaining gate: novice playtest tuning.
 4. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
 5. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
 
@@ -189,8 +190,8 @@ Open questions to test, not debate abstractly:
 
 1. Extract scenario and requirement data from `game.js`.
 2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
-3. Add a second authored brief variation using the same venue systems.
-4. Expose career history on the briefing screen and add best-per-contract records.
-5. Add a controlled rain interaction only if wind remains legible in novice playtests.
-6. Tune item locations, carry speeds, and cue timing from three first-time playtests.
-7. Add controller support before attempting local co-op.
+3. Add best-per-contract records and a compact post-job cause timeline.
+4. Add a controlled rain interaction only if wind remains legible in novice playtests.
+5. Tune item locations, carry speeds, and cue timing from three first-time playtests.
+6. Add controller support before attempting local co-op.
+7. Begin a Unity graybox migration checklist after browser playtest findings stabilize.

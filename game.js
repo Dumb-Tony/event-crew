@@ -6,6 +6,7 @@ const { clamp, distance, pointInRect, circleHitsRect, totalLoad, requirementScor
 const ui = {
   start: document.getElementById("startScreen"), result: document.getElementById("resultScreen"),
   pause: document.getElementById("pauseScreen"),
+  career: document.getElementById("careerText"),
   timer: document.getElementById("timer"), phase: document.getElementById("phaseLabel"),
   deadlineCaption: document.getElementById("deadlineCaption"), cue: document.getElementById("cueText"),
   reqs: document.getElementById("requirementsList"), score: document.getElementById("scoreText"),
@@ -29,7 +30,7 @@ let state;
 let audioContext = null;
 let soundOn = true;
 
-function makeState(deadline = 180, windy = false) {
+function makeState(deadline = 180, windy = false, changeOrder = false) {
   const items = [];
   for (let i = 0; i < 6; i++) items.push({ id: `chair${i}`, kind: "chair", x: 80 + (i % 3) * 28, y: 390 + Math.floor(i / 3) * 36, w: 18, h: 18, held: false });
   items.push({ id: "table0", kind: "table", x: 85, y: 480, w: 52, h: 30, held: false });
@@ -49,6 +50,7 @@ function makeState(deadline = 180, windy = false) {
     guestDetours: 0, tripHazards: 0, overloads: 0, interactions: 0, snaps: 0, liveFixes: 0,
     arrivalReadiness: 0, maxReadiness: windy ? 13 : 11, cakeBumpCooldown: 0, cues: { procession: null, vows: null, toast: null },
     weather: { windy, warned: false, gustOne: false, gustTwo: false },
+    changeOrder: { enabled: changeOrder, warned: false, applied: false },
     radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
@@ -63,14 +65,21 @@ const zones = [
   { id: "sandbag1", kind: "sandbag", x: 811, y: 132, w: 34, h: 28, label: "TIE" },
   ...Array.from({ length: 6 }, (_, i) => ({ id: `chair${i}`, kind: "chair", x: 560 + (i % 3) * 70, y: 245 + Math.floor(i / 3) * 58, w: 38, h: 38, label: String(i + 1) }))
 ];
+const baseZonePositions = Object.fromEntries(zones.map(z => [z.id, { x: z.x, y: z.y, w: z.w, h: z.h }]));
+
+function resetZones() {
+  for (const zone of zones) Object.assign(zone, baseZonePositions[zone.id]);
+}
 
 function reset() { state = makeState(); updateUI(); }
 function start() {
   const windy = document.getElementById("weatherMode").value === "wind";
-  state = makeState(document.getElementById("relaxedTime").checked ? 300 : world.deadline, windy);
+  const changeOrder = document.getElementById("briefMode").value === "change";
+  resetZones();
+  state = makeState(document.getElementById("relaxedTime").checked ? 300 : world.deadline, windy, changeOrder);
   state.phase = "setup";
   ui.start.classList.add("hidden"); ui.result.classList.add("hidden"); ui.pause.classList.add("hidden");
-  state.radio = windy ? "Forecast: strong gusts. Two sandbags are staged for the arch tie points." : "Foreman: Walk the site, then start unloading.";
+  state.radio = windy ? "Forecast: strong gusts. Two sandbags are staged for the arch tie points." : changeOrder ? "Client says the seating plan may change. Stage cleanly and watch the radio." : "Foreman: Walk the site, then start unloading.";
   ensureAudio(); tone(180, .06, "square", .025); canvas.focus(); updateUI();
 }
 
@@ -105,6 +114,7 @@ function update(dt) {
       state.radio = "Ten seconds. Crew clear the aisle—guests are at the door.";
     }
     updateWeather();
+    updateChangeOrder();
     if (state.time <= 0) beginCeremony();
   } else if (state.phase === "ceremony") {
     state.ceremonyTime += dt;
@@ -114,6 +124,26 @@ function update(dt) {
     if (state.ceremonyTime >= world.ceremonyLength) finish();
   }
   updateParticles(dt);
+}
+
+function updateChangeOrder() {
+  if (!state.changeOrder.enabled) return;
+  if (!state.changeOrder.warned && state.time <= 95) {
+    state.changeOrder.warned = true; state.radio = "Client is reviewing the aisle width. Change order expected in 25 seconds.";
+    addParticle(650, 210, "PLAN REVIEW", "#f0a33e"); tone(205, .12, "triangle", .03);
+  }
+  if (!state.changeOrder.applied && state.time <= 70) applyChangeOrder();
+}
+
+function applyChangeOrder() {
+  state.changeOrder.applied = true;
+  const positions = [
+    [575,215],[720,215],[575,270],[720,270],[575,315],[720,315]
+  ];
+  for (let i=0;i<6;i++) { const z=zones.find(zone=>zone.id===`chair${i}`); z.x=positions[i][0]; z.y=positions[i][1]; }
+  if (state.verified) state.verified = false;
+  state.radio = "CHANGE ORDER: widen the center aisle. Chair marks updated; prior verification is void.";
+  addParticle(650, 200, "LAYOUT CHANGED", "#e2634d"); tone(118, .3, "sawtooth", .045);
 }
 
 function updateWeather() {
@@ -352,11 +382,14 @@ function saveCareer(rank, readiness) {
 
 function updateUI() {
   const r = requirementState(); const shownTime = state.phase === "ceremony" ? Math.max(0, world.ceremonyLength - state.ceremonyTime) : state.time;
+  const career = loadCareer();
+  ui.career.textContent = career.shifts ? `LOCAL CREW RECORD • ${career.shifts} SHIFTS • BEST ${career.bestRank} • ${career.totalOverloads} TOTAL OVERLOADS` : "NO COMPLETED SHIFTS ON THIS DEVICE";
   ui.timer.textContent = `${String(Math.floor(shownTime / 60)).padStart(2,"0")}:${String(Math.floor(shownTime % 60)).padStart(2,"0")}`;
   ui.phase.textContent = state.paused ? "PAUSED" : state.phase === "ceremony" ? "LIVE" : state.phase === "result" ? "DONE" : "SETUP";
   ui.deadlineCaption.textContent = state.phase === "ceremony" ? "CEREMONY LIVE" : state.phase === "result" ? "SHIFT COMPLETE" : "UNTIL GUESTS";
   const nextCue = state.phase !== "ceremony" ? "PREP" : state.cues.procession === null ? "PROCESSION" : state.cues.vows === null ? "VOWS" : state.cues.toast === null ? "TOAST" : "WRAP";
-  ui.cue.textContent = `CH. 4 • ${nextCue}${state.weather.windy ? " • WIND" : ""}`;
+  const briefFlag = state.changeOrder.enabled && !state.changeOrder.applied ? " • CHANGE PENDING" : state.changeOrder.applied ? " • PLAN B" : "";
+  ui.cue.textContent = `CH. 4 • ${nextCue}${state.weather.windy ? " • WIND" : ""}${briefFlag}`;
   const cake = state.items.find(i => i.id === "cake");
   const reqs = [["Ceremony arch", r.arch], [`Chairs ${r.chairs} / 6`, r.chairs === 6], [`Tables ${r.tables} / 2`, r.tables === 2], ["Sound placed + powered", r.audio], [`Cake intact ${cake.durability} / 3`, r.cake], ["Final checklist verified", state.verified]];
   if (state.weather.windy) reqs.splice(1, 0, [`Arch ties ${r.sandbags} / 2`, r.sandbags === 2]);
