@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#20251f">
+  <meta name="description" content="Event Crew — a compact cooperative wedding setup prototype.">
+  <title>Event Crew — Wedding Rush</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">Rookery County Events • Job 001</p>
+        <h1>EVENT CREW</h1>
+      </div>
+      <div class="deadline" aria-live="polite">
+        <span id="phaseLabel">SETUP</span>
+        <strong id="timer">03:00</strong>
+        <small>UNTIL GUESTS</small>
+      </div>
+    </header>
+
+    <section class="game-wrap" aria-label="Wedding venue game">
+      <canvas id="game" width="960" height="600" tabindex="0" aria-label="Top-down wedding setup yard. Use WASD or arrow keys to move and Space to interact."></canvas>
+      <div id="startScreen" class="overlay">
+        <div class="brief-card">
+          <p class="eyebrow">THE HAWTHORN WEDDING</p>
+          <h2>Guests arrive in three minutes.</h2>
+          <p>Unload the van. Put the arch at the altar, two tables on the reception pads, and six chairs in the ceremony rows. Connect the sound system without overloading the circuit.</p>
+          <div class="controls-grid">
+            <span><kbd>WASD</kbd> / <kbd>↑↓←→</kbd><b>Move</b></span>
+            <span><kbd>SPACE</kbd><b>Pick up / drop / use</b></span>
+            <span><kbd>E</kbd><b>Inspect checklist</b></span>
+          </div>
+          <button id="startButton">CLOCK IN</button>
+        </div>
+      </div>
+      <div id="resultScreen" class="overlay hidden">
+        <div class="brief-card result-card">
+          <p class="eyebrow">THE EVENT WENT AHEAD</p>
+          <h2 id="resultTitle">A wedding happened.</h2>
+          <p id="resultCopy"></p>
+          <div id="resultStats" class="result-stats"></div>
+          <button id="restartButton">WORK ANOTHER SHIFT</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="hud-grid">
+      <aside class="panel requirements">
+        <div class="panel-title"><span>CLIENT REQUIREMENTS</span><small id="scoreText">0 / 10 READY</small></div>
+        <ul id="requirementsList"></ul>
+      </aside>
+      <aside class="panel status">
+        <div class="panel-title"><span>CREW RADIO</span><small>CH. 4</small></div>
+        <p id="radioText" aria-live="polite">Foreman: Walk the site, then start unloading.</p>
+        <div class="load-row">
+          <span>CIRCUIT A</span>
+          <div class="meter"><i id="loadMeter"></i></div>
+          <strong id="loadText">0 / 15A</strong>
+        </div>
+        <p class="hint" id="hintText">Move near an item and press Space.</p>
+      </aside>
+    </section>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>

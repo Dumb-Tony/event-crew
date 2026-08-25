@@ -1,0 +1,32 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+
+# Dependencies, generated output, and logs
+node_modules/
+dist/
+build/
+coverage/
+*.log
+*.tmp
+
+# Unity migration artifacts
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
