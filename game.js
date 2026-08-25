@@ -16,8 +16,9 @@ const ui = {
 };
 
 const keys = new Set();
-const world = { w: 960, h: 600, deadline: 180, ceremonyLength: 22 };
-const colors = { chair: "#e8e0c6", table: "#a2734f", arch: "#ecd7ac", speaker: "#33383a", lights: "#b8a060", cake: "#f4d9df", dolly: "#c46f36", cable: "#edb647" };
+const quickQa = new URLSearchParams(location.search).get("qa") === "1";
+const world = { w: 960, h: 600, deadline: quickQa ? 2 : 180, ceremonyLength: 22 };
+const colors = { chair: "#e8e0c6", table: "#a2734f", arch: "#ecd7ac", speaker: "#33383a", lights: "#b8a060", cake: "#f4d9df", dolly: "#c46f36", sandbag: "#6d6a58", cable: "#edb647" };
 const aisle = { x: 310, y: 190, w: 230, h: 235 };
 const fixedObstacles = [
   { x: 405, y: 478, w: 64, h: 92 },
@@ -28,7 +29,7 @@ let state;
 let audioContext = null;
 let soundOn = true;
 
-function makeState(deadline = 180) {
+function makeState(deadline = 180, windy = false) {
   const items = [];
   for (let i = 0; i < 6; i++) items.push({ id: `chair${i}`, kind: "chair", x: 80 + (i % 3) * 28, y: 390 + Math.floor(i / 3) * 36, w: 18, h: 18, held: false });
   items.push({ id: "table0", kind: "table", x: 85, y: 480, w: 52, h: 30, held: false });
@@ -38,11 +39,16 @@ function makeState(deadline = 180) {
   items.push({ id: "lights", kind: "lights", x: 226, y: 545, w: 30, h: 18, held: false, amps: 9, powered: false });
   items.push({ id: "cake", kind: "cake", x: 247, y: 480, w: 28, h: 28, held: false, fragile: true, durability: 3 });
   items.push({ id: "dolly", kind: "dolly", x: 270, y: 548, w: 25, h: 42, held: false, equipped: false });
+  if (windy) {
+    items.push({ id: "sandbag0", kind: "sandbag", x: 55, y: 545, w: 28, h: 17, held: false });
+    items.push({ id: "sandbag1", kind: "sandbag", x: 58, y: 570, w: 28, h: 17, held: false });
+  }
   return {
     phase: "brief", time: deadline, ceremonyTime: 0, paused: false, player: { x: 270, y: 450, r: 14, speed: 170, held: null, dolly: null },
     items, verified: false, fuseBlown: false, guests: [], particles: [], warnings: { thirty: false, ten: false },
     guestDetours: 0, tripHazards: 0, overloads: 0, interactions: 0, snaps: 0, liveFixes: 0,
-    arrivalReadiness: 0, maxReadiness: 11, cakeBumpCooldown: 0, cues: { procession: null, vows: null, toast: null },
+    arrivalReadiness: 0, maxReadiness: windy ? 13 : 11, cakeBumpCooldown: 0, cues: { procession: null, vows: null, toast: null },
+    weather: { windy, warned: false, gustOne: false, gustTwo: false },
     radio: "Foreman: Walk the site, then start unloading.", lastTime: 0
   };
 }
@@ -53,14 +59,18 @@ const zones = [
   { id: "table1", kind: "table", x: 812, y: 390, w: 90, h: 58, label: "TABLE" },
   { id: "speaker", kind: "speaker", x: 885, y: 215, w: 48, h: 64, label: "SOUND" },
   { id: "cake", kind: "cake", x: 790, y: 475, w: 74, h: 54, label: "CAKE" },
+  { id: "sandbag0", kind: "sandbag", x: 685, y: 132, w: 34, h: 28, label: "TIE" },
+  { id: "sandbag1", kind: "sandbag", x: 811, y: 132, w: 34, h: 28, label: "TIE" },
   ...Array.from({ length: 6 }, (_, i) => ({ id: `chair${i}`, kind: "chair", x: 560 + (i % 3) * 70, y: 245 + Math.floor(i / 3) * 58, w: 38, h: 38, label: String(i + 1) }))
 ];
 
 function reset() { state = makeState(); updateUI(); }
 function start() {
-  state = makeState(document.getElementById("relaxedTime").checked ? 300 : world.deadline);
+  const windy = document.getElementById("weatherMode").value === "wind";
+  state = makeState(document.getElementById("relaxedTime").checked ? 300 : world.deadline, windy);
   state.phase = "setup";
   ui.start.classList.add("hidden"); ui.result.classList.add("hidden"); ui.pause.classList.add("hidden");
+  state.radio = windy ? "Forecast: strong gusts. Two sandbags are staged for the arch tie points." : "Foreman: Walk the site, then start unloading.";
   ensureAudio(); tone(180, .06, "square", .025); canvas.focus(); updateUI();
 }
 
@@ -74,7 +84,8 @@ function requirementState() {
   const load = totalLoad(state.items);
   const audio = placed.speaker && speaker.powered && !state.fuseBlown;
   const cake = placed.cake && cakeItem.durability > 0;
-  const result = { chairs, tables, arch, audio, cake, safePower: load <= 15 && !state.fuseBlown, load };
+  const sandbags = state.weather.windy ? [placed.sandbag0, placed.sandbag1].filter(Boolean).length : 0;
+  const result = { chairs, tables, arch, audio, cake, sandbags, safePower: load <= 15 && !state.fuseBlown, load };
   result.complete = requirementScore(result);
   return result;
 }
@@ -93,6 +104,7 @@ function update(dt) {
       state.warnings.ten = true;
       state.radio = "Ten seconds. Crew clear the aisle—guests are at the door.";
     }
+    updateWeather();
     if (state.time <= 0) beginCeremony();
   } else if (state.phase === "ceremony") {
     state.ceremonyTime += dt;
@@ -102,6 +114,26 @@ function update(dt) {
     if (state.ceremonyTime >= world.ceremonyLength) finish();
   }
   updateParticles(dt);
+}
+
+function updateWeather() {
+  if (!state.weather.windy) return;
+  if (!state.weather.warned && state.time <= 75) {
+    state.weather.warned = true; state.radio = "Wind rising. Secure both arch tie points before the gust front hits.";
+    addParticle(760, 90, "GUST INBOUND", "#f0a33e"); tone(135, .2, "triangle", .035);
+  }
+  if (!state.weather.gustOne && state.time <= 55) { state.weather.gustOne = true; applyWindGust("First gust"); }
+  if (!state.weather.gustTwo && state.time <= 25) { state.weather.gustTwo = true; applyWindGust("Second gust"); }
+}
+
+function applyWindGust(name) {
+  const r = requirementState(), arch = state.items.find(i => i.id === "arch");
+  if (r.sandbags === 2 && r.arch) {
+    state.radio = `${name}: the tied-down arch held.`; addParticle(765, 100, "SECURE", "#91bc68"); tone(480, .14, "sine", .035); return;
+  }
+  if (arch.held) { arch.held = false; state.player.held = null; }
+  arch.x = clamp(arch.x + 78, 40, world.w - 40); arch.y = clamp(arch.y + 34, 60, world.h - 30);
+  state.radio = `${name}: the unsecured arch was blown off its mark.`; addParticle(arch.x, arch.y, "ARCH MOVED", "#e2634d"); tone(88, .28, "sawtooth", .05);
 }
 
 function movePlayer(dt) {
@@ -217,6 +249,7 @@ function inspect() {
   const missing = [];
   if (!r.arch) missing.push("arch"); if (r.tables < 2) missing.push(`${2-r.tables} table${2-r.tables === 1 ? "" : "s"}`);
   if (r.chairs < 6) missing.push(`${6-r.chairs} chair${6-r.chairs === 1 ? "" : "s"}`); if (!r.audio) missing.push("sound"); if (!r.cake) missing.push("intact cake");
+  if (state.weather.windy && r.sandbags < 2) missing.push(`${2-r.sandbags} arch tie${2-r.sandbags === 1 ? "" : "s"}`);
   state.radio = missing.length ? `Checklist: still missing ${missing.join(", ")}.` : "Checklist verified. We could almost look professional."; tone(missing.length ? 150 : 620, .09, "triangle", .025); recordInteraction(); updateUI();
 }
 
@@ -300,8 +333,21 @@ function finish() {
   const titles = { S: "A suspiciously competent wedding.", A: "The client would actually rebook.", B: "The photos will be strategically cropped.", C: "Legally, it was still a wedding.", D: "Rookery County has a new cautionary tale." };
   const cueCopy = `${state.cues.procession ? "The procession flowed" : "The procession detoured"}, ${state.cues.vows ? "the vows were heard" : "the vows became mime"}, and ${state.cues.toast ? "the toast had tables" : "catering found a crate"}.`;
   ui.resultTitle.textContent = `${grade.rank} — ${titles[grade.rank]}`; ui.resultCopy.textContent = `${cueCopy} ${grade.label}.`;
-  ui.resultStats.innerHTML = `<span>ARRIVAL READY<strong>${state.arrivalReadiness}/${state.maxReadiness}</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>LATE FIXES<strong>${state.liveFixes}</strong></span>`;
+  const record = saveCareer(grade.rank, state.arrivalReadiness);
+  ui.resultStats.innerHTML = `<span>RANK<strong>${grade.rank}</strong></span><span>ARRIVAL READY<strong>${state.arrivalReadiness}/${state.maxReadiness}</strong></span><span>LIVE CUES<strong>${cueScore}/3</strong></span><span>OVERLOADS<strong>${state.overloads}</strong></span><span>DETOURS<strong>${state.guestDetours}</strong></span><span>CAREER BEST<strong>${record.bestRank}</strong></span>`;
   ui.result.classList.remove("hidden"); updateUI();
+}
+
+function loadCareer() {
+  try { return JSON.parse(localStorage.getItem("eventCrewCareer")) || { shifts: 0, bestRank: "—", bestReadiness: 0, totalOverloads: 0 }; }
+  catch { return { shifts: 0, bestRank: "—", bestReadiness: 0, totalOverloads: 0 }; }
+}
+function saveCareer(rank, readiness) {
+  const record = loadCareer(), order = ["S", "A", "B", "C", "D", "—"];
+  record.shifts++; record.bestReadiness = Math.max(record.bestReadiness, readiness); record.totalOverloads += state.overloads;
+  if (order.indexOf(rank) < order.indexOf(record.bestRank)) record.bestRank = rank;
+  try { localStorage.setItem("eventCrewCareer", JSON.stringify(record)); } catch { /* private storage may be unavailable */ }
+  return record;
 }
 
 function updateUI() {
@@ -310,9 +356,10 @@ function updateUI() {
   ui.phase.textContent = state.paused ? "PAUSED" : state.phase === "ceremony" ? "LIVE" : state.phase === "result" ? "DONE" : "SETUP";
   ui.deadlineCaption.textContent = state.phase === "ceremony" ? "CEREMONY LIVE" : state.phase === "result" ? "SHIFT COMPLETE" : "UNTIL GUESTS";
   const nextCue = state.phase !== "ceremony" ? "PREP" : state.cues.procession === null ? "PROCESSION" : state.cues.vows === null ? "VOWS" : state.cues.toast === null ? "TOAST" : "WRAP";
-  ui.cue.textContent = `CH. 4 • ${nextCue}`;
+  ui.cue.textContent = `CH. 4 • ${nextCue}${state.weather.windy ? " • WIND" : ""}`;
   const cake = state.items.find(i => i.id === "cake");
   const reqs = [["Ceremony arch", r.arch], [`Chairs ${r.chairs} / 6`, r.chairs === 6], [`Tables ${r.tables} / 2`, r.tables === 2], ["Sound placed + powered", r.audio], [`Cake intact ${cake.durability} / 3`, r.cake], ["Final checklist verified", state.verified]];
+  if (state.weather.windy) reqs.splice(1, 0, [`Arch ties ${r.sandbags} / 2`, r.sandbags === 2]);
   ui.reqs.innerHTML = reqs.map(([text,done]) => `<li class="${done ? "done" : ""}">${text}</li>`).join("");
   ui.score.textContent = `${r.complete} / ${state.maxReadiness} READY`;
   ui.radio.textContent = state.radio; ui.loadText.textContent = `${r.load} / 15A`; ui.loadMeter.style.width = `${Math.min(100, r.load / 15 * 100)}%`;
@@ -324,6 +371,7 @@ function updateUI() {
 function draw() {
   ctx.clearRect(0,0,world.w,world.h); drawGround(); drawZones(); drawPower();
   state.items.forEach(drawItem); state.guests.forEach(drawGuest); drawContextHighlight(); if (state.phase !== "result") drawPlayer(); drawParticles();
+  if (state.weather.windy) drawWind();
   if (state.fuseBlown) { ctx.fillStyle = "#12141bbb"; ctx.fillRect(315,40,645,560); }
 }
 
@@ -346,7 +394,7 @@ function drawZones() {
   ctx.restore();
 }
 
-function requirementStateForZone(z) { const i=state.items.find(i=>i.id===z.id); return distance(i.x,i.y,z.x+z.w/2,z.y+z.h/2)<Math.max(z.w,z.h)*.48; }
+function requirementStateForZone(z) { const i=state.items.find(i=>i.id===z.id); return !!i && distance(i.x,i.y,z.x+z.w/2,z.y+z.h/2)<Math.max(z.w,z.h)*.48; }
 
 function drawPower() {
   const outlet={x:465,y:500}; for(const item of state.items.filter(i=>i.powered)){ctx.strokeStyle=colors.cable;ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(outlet.x,outlet.y);ctx.lineTo(item.x,item.y);ctx.stroke();}
@@ -388,6 +436,13 @@ function updateParticles(dt) { state.particles.forEach(p => { p.life -= dt; p.y 
 function drawParticles() {
   ctx.save(); ctx.font="900 13px ui-monospace"; ctx.textAlign="center";
   for (const p of state.particles) { ctx.globalAlpha = Math.min(1, p.life * 1.5); ctx.fillStyle="#111b"; ctx.fillText(p.text, p.x + 2, p.y + 2); ctx.fillStyle=p.color; ctx.fillText(p.text,p.x,p.y); }
+  ctx.restore();
+}
+
+function drawWind() {
+  const t = performance.now() * .08;
+  ctx.save(); ctx.strokeStyle="#e9f1de55"; ctx.lineWidth=2;
+  for (let i=0;i<9;i++) { const x=(t+i*137)%1100-80, y=70+i*57; ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+42,y+9);ctx.stroke(); }
   ctx.restore();
 }
 

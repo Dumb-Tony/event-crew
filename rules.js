@@ -15,7 +15,7 @@
   }
   function totalLoad(items) { return items.filter(item => item.powered).reduce((sum, item) => sum + (item.amps || 0), 0); }
   function requirementScore(requirements) {
-    return requirements.chairs + requirements.tables + Number(requirements.arch) + Number(requirements.audio) + Number(requirements.cake);
+    return requirements.chairs + requirements.tables + Number(requirements.arch) + Number(requirements.audio) + Number(requirements.cake) + (requirements.sandbags || 0);
   }
   function gradeJob({ readiness, maxReadiness = 11, verified, cueScore, detours, overloads }) {
     const total = readiness / maxReadiness * 80 + cueScore * 7 + Number(verified) * 5 - Math.min(12, detours) - overloads * 4;

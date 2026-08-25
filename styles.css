@@ -49,6 +49,8 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 .button-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
 .option { display: flex; gap: 8px; align-items: center; margin: 0 0 18px; color: var(--muted); font-size: .8rem; }
 .option input { width: 17px; height: 17px; accent-color: var(--orange); }
+.brief-options { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.option select { border: 1px solid var(--line); padding: 7px 10px; background: #171b16; color: var(--ink); font: inherit; }
 .pause-card { max-width: 520px; }
 .pause-card small { display: block; color: var(--muted); }
 

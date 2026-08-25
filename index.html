@@ -37,7 +37,15 @@
             <span><kbd>E</kbd><b>Inspect checklist</b></span>
             <span><kbd>P</kbd><b>Pause</b></span>
           </div>
-          <label class="option"><input id="relaxedTime" type="checkbox"> Relaxed shift: five-minute setup</label>
+          <div class="brief-options">
+            <label class="option"><input id="relaxedTime" type="checkbox"> Relaxed shift: five-minute setup</label>
+            <label class="option">Forecast
+              <select id="weatherMode">
+                <option value="calm">Clear skies</option>
+                <option value="wind">Wind advisory</option>
+              </select>
+            </label>
+          </div>
           <button id="startButton">CLOCK IN</button>
         </div>
       </div>

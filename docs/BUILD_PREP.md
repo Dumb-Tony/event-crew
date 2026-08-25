@@ -35,6 +35,8 @@
 - [ ] Add rain as one legible modifier: forecast → warning → wet zones → safe response.
 - [x] Add a usable dolly with heavy-carry and fragile-cargo benefits; momentum/stacking remain deferred.
 - [x] Add a fragile cake with damage feedback, requirement state, and toast consequence.
+- [x] Add a selectable wind-advisory contract with forecast, advance warning, two gusts, and physical sandbag prevention.
+- [x] Persist completed shifts, best rank/readiness, and cumulative overloads in local browser storage.
 - [ ] Add a randomized “client changed the aisle” variation.
 - [ ] Add a second circuit or generator choice.
 - [ ] Add local two-player keyboard/controller experiment.
@@ -84,6 +86,8 @@ The first slice is accepted when:
 - [ ] F handles power without preventing unpowered speaker/light pickup.
 - [ ] G attaches/parks the dolly and changes heavy/fragile carry behavior.
 - [ ] Rough cake drops and unprotected live-event crowd bumps reduce condition; the dolly prevents crowd-bump damage.
+- [ ] Wind advisory adds two tie-point requirements and unsecured gusts move the arch off its client mark.
+- [ ] Completing a shift updates local career history without affecting clean restart state.
 
 ### Experience and accessibility
 
@@ -116,6 +120,8 @@ The first slice is accepted when:
 
 ## Manual test scenarios
 
+Append `?qa=1` to the local or Pages URL to reduce setup to two seconds while preserving the complete 22-second live-event cue sequence.
+
 1. **Perfect:** place all layout objects, power sound only, inspect, wait; expect 10/10 and top result.
 2. **Power mistake:** power sound and lights; expect trip, darkness, reset path; reconnect sound; expect recovery.
 3. **No setup:** wait out clock; guests still enter; expect poor result.
@@ -124,6 +130,8 @@ The first slice is accepted when:
 6. **Blocked aisle:** leave a table in the marked access aisle; expect guests to steer around it, radio feedback to identify the cause, and a nonzero detour count.
 7. **Cake run:** rough-drop the cake three times; expect condition to reach zero, the requirement to remain incomplete, and toast cue failure even on correct placement.
 8. **Protected cargo:** take the dolly, carry the cake through the live crowd, and verify proximity does not damage it.
+9. **Wind prevention:** choose Wind Advisory, secure both arch tie points, and expect both gusts to leave a correctly placed arch unchanged.
+10. **Wind recovery:** leave the arch unsecured through the first gust, then replace and tie it before the second gust; expect only one displacement.
 
 ## Definition of done for next milestone
 
