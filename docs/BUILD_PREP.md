@@ -27,6 +27,7 @@
 - [x] Add pause, sound toggle, and extended-deadline option.
 - [x] Add generated interaction, breaker, warning, and ceremony cue audio.
 - [x] Add crowd avoidance and access-aisle hazard evaluation.
+- [x] Replace graybox/cardboard presentation with the approved Municipal Workwear + Living Blueprint + Storybook Warmth visual target.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
 
@@ -99,6 +100,10 @@ The first slice is accepted when:
 
 - [ ] Primary task and deadline are readable at first glance.
 - [ ] Item silhouettes remain distinguishable without relying only on color.
+- [ ] Real objects remain visually distinct from cyan blueprint targets at setup and during the live event.
+- [ ] Cables, plugs, breaker status, carried-item highlight, and tripped-power blackout remain legible against every venue surface.
+- [ ] Staging asphalt, venue floor, landscaping, and access aisle read as separate physical spaces without requiring labels.
+- [ ] Warm live-event lighting preserves requirement and interaction contrast.
 - [ ] Requirement completion has icon/text feedback as well as color.
 - [ ] Circuit trip has world, meter, and radio feedback.
 - [ ] Canvas has an accessible label and visible keyboard focus.
@@ -117,6 +122,8 @@ The first slice is accepted when:
 
 ## File-level next tasks
 
+- `game.js`: add subtle foliage, fabric, and powered-equipment animation; keep motion optional under reduced-motion settings.
+- `game.js`: add visual variants for guest outfits, floral arrangements, and table dressing without changing collision footprints.
 - `game.js`: count overloads/interactions; isolate input edge events; add recovery behavior for guests trapped between multiple blockers.
 - `game.js` → `src/data/wedding.js`: extract zone, equipment, deadline, and requirement definitions.
 - `game.js` → `src/data/wedding.js`: extract authored scenario, cue, and equipment data.

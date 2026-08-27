@@ -1,6 +1,6 @@
 # EVENT CREW
 
-A dependency-free browser prototype and living design package for a cooperative event-setup game.
+A polished, dependency-free browser prototype and living design package for a cooperative event-setup game.
 
 > **Play online:** https://dumb-tony.github.io/event-crew/
 
@@ -44,5 +44,7 @@ An initial project setup route was unavailable in the workspace. Because the req
 The implemented loop includes delivery staging, weighted carrying, a usable dolly, a damageable wedding cake, forgiving target snapping, six chairs, two tables, an arch, movable sound and decorative-light equipment, a 15A circuit and resettable breaker, requirement verification, a hard guest-arrival deadline, and a continuously playable live wedding. Procession, vows, and toast cues judge the state of the venue when each moment occurs; players can keep working through the crowd to rescue later cues. The debrief grades arrival readiness, live cues, overloads, crowd detours, and late fixes, then explains the decisive events in a causal timeline and updates the best rank for that contract combination.
 
 The prototype includes generated interaction/cue sounds, pause and mute controls, clear-skies and wind-advisory contracts, approved-plan and mid-shift change-order briefs, an optional five-minute relaxed shift, solid collision, visible local career records, pure-rule tests, and no build step. Known boundaries: keyboard-first controls, no networked persistence, no multiplayer, lightweight authored physics, and one venue with combinable contract variations. Those omissions are prioritized in `docs/BUILD_PREP.md` rather than hidden as implied functionality.
+
+The current visual target blends municipal workwear, a living blueprint plan layer, and storybook wedding warmth. The venue now has landscaped boundaries, delivery asphalt, warm timber flooring, string lights, dimensional furniture and equipment, visible cables and plugs, uniformed crew/guest characters, and an industrial operations HUD—all rendered locally with Canvas and CSS.
 
 Run the core rule checks with `node tests/rules.test.js`.

@@ -1,7 +1,7 @@
 # EVENT CREW — Living Game Design Document
 
-**Status:** Browser vertical slice v0.1  
-**Last updated:** 2026-08-25  
+**Status:** Browser vertical slice v0.2 — visual target pass
+**Last updated:** 2026-08-27
 **Decision owner:** living prototype; update this file when implementation changes.
 
 **Implementation note:** an unavailable setup route was bypassed by using the requested package-free HTML/CSS/JavaScript approach. This is a deliberate local prototype architecture, not a partial framework installation; see `README.md` for the handoff.
@@ -74,7 +74,9 @@ There is no early global fail in normal contracts. A blown breaker, blocked aisl
 
 ## Art, audio, interface, and accessibility
 
-Art direction: stylized 3D “municipal catalog” realism—chunky silhouettes, readable materials, safety orange crew accents, faded venue colors, stenciled labels, and grounded but forgiving physics. Equipment should be recognizable at a glance and show state in the world (lit switches, cable runs, leaning stacks). Browser v0.1 uses a top-down canvas version of that visual grammar.
+Art direction decision: **Municipal Workwear + Living Blueprint + Storybook Warmth.** The physical world uses chunky, dimensional “municipal catalog” realism: recognizable construction, grounded shadows, material contrast, safety-orange crew accents, faded county colors, and stenciled operations labels. Cyan plan marks, aisle boundaries, cable paths, circuit state, and inspection feedback form a blueprint layer over that world; these are planning information, not the objects themselves. Wedding warmth arrives through cream timber, greenery, florals, table linens, string lights, and a warmer live-event lighting pass. The result should feel like real workers temporarily transforming a practical county venue, not tokens on a board.
+
+Browser v0.2 establishes that target entirely in Canvas and CSS: landscaped venue edges, asphalt delivery staging, plank flooring, architectural shadows, dimensional furniture and equipment, curved cable runs with plugs, a uniformed crew silhouette, varied guests, world lighting, and a control-room HUD. The no-asset approach keeps deployment immediate while acting as a production-art specification for Unity. Next visual work should deepen animation and variation rather than replace this visual grammar.
 
 Audio direction: close, tactile work sounds; radio compression for task updates; spatial hums and buzzes for powered systems; a musical mix that shifts from prep percussion to diegetic live-event music at deadline. Comedy comes from timing and contrast, not quips. Critical cues (breaker trip, arrival warning) receive distinct sound plus visual feedback.
 
@@ -90,7 +92,7 @@ Jobs combine authored venue layouts with parameterized briefs, delivery order, g
 
 Current scope:
 
-- One top-down wedding venue and delivery yard.
+- One visually dressed top-down wedding venue and delivery yard, with landscaped boundaries, staging asphalt, warm timber floor, string lighting, dimensional props, and a blueprint work-plan overlay.
 - Three-minute real-time setup phase and 22-second live-event phase.
 - Move; weighted pick up/drop; snap to client marks; separately connect/disconnect power; reset breaker; inspect checklist.
 - Six chairs, two tables, one arch, sound system, decorative lights.
@@ -113,7 +115,7 @@ Current scope:
 - Per-contract-combination best ranks and a concise debrief timeline of change orders, weather impacts, overloads, damage, doors opening, and live cue outcomes.
 - Selectable client change-order brief: a warning precedes a mid-setup seating-plan update, chair marks move to widen the aisle, and an earlier verification becomes stale.
 
-Explicit exclusions: networking, full physics engine, inventory economy, saves, touch controls, weather, vehicles, damage, multiple venues, AI crew, and procedural jobs. These are deferred until the authored wedding loop is proven in playtests.
+Explicit exclusions: networking, full physics engine, inventory economy, cloud saves, touch controls, drivable vehicles, multiple venues, AI crew, and procedural jobs. These are deferred until the authored wedding loop is proven in playtests. Authored wind, cake damage, and local career records are now included.
 
 ## Technical approach and state architecture
 
@@ -162,7 +164,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 | Inspect checklist | E | North face / Tab |
 | Pause | P | Menu |
 | Mute | M | Settings |
-| Gamepad actions | — | Left stick; south carry; west power; east dolly; north checklist; Start pause; Select mute |
+| Gamepad actions | Left stick; south carry; west power; east dolly; north checklist; Start pause; Select mute | Same mapping through Unity Input System |
 | Restart prototype | R | Pause menu only |
 
 ## Milestones
@@ -170,12 +172,13 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 1. **M0 — Loop proof (complete):** one job, deadline, placement, constrained power, checklist, live event, debrief.
 2. **M1 — Legibility pass (substantially complete):** contextual outlines, collision/route blocking, audio, warnings, pause, relaxed timer, cue-based consequences, rule tests. Remaining gate: novice playtests and pacing tune.
 3. **M2 — Systems proof (feature complete, tuning pending):** fragile cake, usable dolly, cue scoring, forecasted wind variation, physical prevention, client change-order brief, and visible local career history implemented. Remaining gate: novice playtest tuning.
-4. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
-5. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
+4. **M2.5 — Browser presentation target (complete):** municipal-workwear venue art, living-blueprint plan layer, wedding warmth, dimensional equipment, world lighting, and an industrial operations UI.
+5. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
+6. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
 
 ## Decisions, risks, and open questions
 
-Decisions: the event always starts; success is graded; the first power puzzle presents a meaningful tradeoff; free placement coexists with client zones; the first prototype is solo and dependency-free; Rookery County is the shared fiction.
+Decisions: the event always starts; success is graded; the first power puzzle presents a meaningful tradeoff; free placement coexists with client zones; the first prototype is solo and dependency-free; Rookery County is the shared fiction; the visual target blends municipal workwear, living-blueprint information, and storybook wedding warmth.
 
 Risks: moving many similar props could feel like chores; free placement may be fiddly; physics/netcode can make teamwork unfair; too many simultaneous systems may obscure causality; live-event NPCs can be expensive; progression could incentivize grinding. Mitigations include small counts, forgiving snap/outline feedback, discrete authority, staged system introductions, cheap crowd LOD, and contract variety over stat inflation.
 
@@ -197,3 +200,4 @@ Open questions to test, not debate abstractly:
 5. Add one lightweight onboarding run that teaches carry, snap, and power in sequence.
 6. Validate standard gamepad mappings on Xbox, PlayStation, and generic browser controllers.
 7. Begin a Unity graybox migration checklist after browser playtest findings stabilize.
+8. Add small procedural object animations (foliage, fabric, equipment operation) and venue dressing variants without weakening gameplay silhouettes.
