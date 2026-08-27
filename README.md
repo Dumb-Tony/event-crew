@@ -1,6 +1,6 @@
 # EVENT CREW
 
-A polished, dependency-free browser prototype and living design package for a cooperative event-setup game.
+A stylized 3D browser prototype and living design package for a cooperative event-setup game.
 
 > **Play online:** https://dumb-tony.github.io/event-crew/
 
@@ -8,7 +8,7 @@ A polished, dependency-free browser prototype and living design package for a co
 
 ## Play
 
-Open `index.html` in a modern desktop browser. No installation, build command, account, or network connection is required.
+Use the permanent online link above, or serve the folder with any simple static web server for local development. No installation, build command, account, CDN, or runtime network request is required; direct `file://` opening is not supported because the 3D renderer uses standard JavaScript modules.
 
 - Move: WASD or arrow keys
 - Pick up or drop: Space
@@ -27,17 +27,19 @@ The setup deadline is three minutes. The wedding begins when it expires, whether
 
 - `index.html` — game shell, brief, HUD, and debrief
 - `styles.css` — responsive industrial/event-crew presentation
-- `game.js` — input, state, simulation, rule evaluation, guests, and canvas rendering
+- `game.js` — input, state, simulation, rule evaluation, guests, and renderer coordination
+- `render3d.js` — stylized low-poly WebGL venue, characters, equipment, lighting, shadows, and follow camera
+- `vendor/` — pinned Three.js runtime and its MIT license; no CDN is required while playing
 - `docs/GDD.md` — living game design document, decisions, scope, architecture, milestones, and next work
 - `docs/BUILD_PREP.md` — prioritized backlog, acceptance criteria, QA checklist, and file-level tasks
 
 ## Setup workaround
 
-An initial project setup route was unavailable in the workspace. Because the requested first deliverable explicitly favors plain HTML/CSS/JavaScript with no build step, the project was recovered as a static, package-free site instead of retrying a framework scaffold. This is now an intentional prototype constraint: it keeps the slice portable and removes installer risk. The GDD identifies the point at which modularization and a later Unity migration become worthwhile.
+An initial project setup route was unavailable in the workspace. Because the requested first deliverable explicitly favors plain HTML/CSS/JavaScript with no build step, the project was recovered as a static site instead of retrying a framework scaffold. The pinned 3D runtime is committed under `vendor/`, keeping the player build portable and eliminating installs, CDNs, and build tooling. The GDD identifies the later Unity migration path.
 
 ## Repository and deployment policy
 
-`C:\Dev\event-crew` is the canonical local project. The public GitHub repository is named `event-crew`, uses `main` as its primary branch, and publishes the root-level static prototype through GitHub Pages. Design decisions and implementation changes must update `docs/GDD.md` in the same commit when they affect the living design. Do not commit credentials, local settings, generated files, or machine-specific data.
+`C:\Dev\event-crew` is the canonical local project. The public GitHub repository is named `event-crew`, uses `main` as its primary branch, and publishes the root-level static prototype through GitHub Pages. The permanent playtest address is always `https://dumb-tony.github.io/event-crew/`; release IDs and cache-busting query strings must not be presented as new play links. Design decisions and implementation changes must update `docs/GDD.md` in the same commit when they affect the living design. Do not commit credentials, local settings, generated files, or machine-specific data.
 
 ## Current slice
 
@@ -45,6 +47,6 @@ The implemented loop includes delivery staging, weighted carrying, a usable doll
 
 The prototype includes generated interaction/cue sounds, pause and mute controls, clear-skies and wind-advisory contracts, approved-plan and mid-shift change-order briefs, an optional five-minute relaxed shift, solid collision, visible local career records, pure-rule tests, and no build step. Known boundaries: keyboard-first controls, no networked persistence, no multiplayer, lightweight authored physics, and one venue with combinable contract variations. Those omissions are prioritized in `docs/BUILD_PREP.md` rather than hidden as implied functionality.
 
-The current visual target blends municipal workwear, a living blueprint plan layer, and storybook wedding warmth. The game now plays through a tilted 2.5D diorama with a following camera rather than a full-map board view. Hawthorn Hall has raised architecture, landscaped boundaries, a parked crew van, delivery asphalt, warm timber flooring, string lights, dimensional furniture and equipment, visible cables and plugs, full crew/guest characters, contextual plan projections, and an industrial operations HUD—all rendered locally with Canvas and CSS.
+The current visual target blends municipal workwear, contextual blueprint guidance, and storybook wedding warmth. The venue is now a true low-poly 3D WebGL scene with an orthographic follow camera, modeled crew and guests, real geometry for every movable object, directional lighting, cast shadows, raised architecture, a parked crew van, landscaped beds, wooden flooring, powered materials, physical cable tubes, and contextual placement projections. The rendering runtime is pinned in the repository, so the permanent Pages build remains self-contained with no CDN dependency or build step.
 
 Run the core rule checks with `node tests/rules.test.js`.

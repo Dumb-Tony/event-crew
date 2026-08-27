@@ -1,8 +1,10 @@
 "use strict";
 
+import { createWorldRenderer } from "./render3d.js";
+
 const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const { clamp, distance, pointInRect, circleHitsRect, totalLoad, applyDeadzone, requirementScore, gradeJob } = EventCrewRules;
+const ctx = null;
+const { clamp, distance, pointInRect, circleHitsRect, totalLoad, applyDeadzone, requirementScore, gradeJob } = window.EventCrewRules;
 const ui = {
   start: document.getElementById("startScreen"), result: document.getElementById("resultScreen"),
   pause: document.getElementById("pauseScreen"),
@@ -30,7 +32,6 @@ let state;
 let audioContext = null;
 let soundOn = true;
 let previousGamepadButtons = [];
-const camera = { x: 0, y: 0, zoom: 1.16 };
 
 function makeState(deadline = 180, windy = false, changeOrder = false) {
   const items = [];
@@ -69,6 +70,7 @@ const zones = [
   ...Array.from({ length: 6 }, (_, i) => ({ id: `chair${i}`, kind: "chair", x: 560 + (i % 3) * 70, y: 245 + Math.floor(i / 3) * 58, w: 38, h: 38, label: String(i + 1) }))
 ];
 const baseZonePositions = Object.fromEntries(zones.map(z => [z.id, { x: z.x, y: z.y, w: z.w, h: z.h }]));
+const worldRenderer = createWorldRenderer(canvas, world, zones);
 
 function resetZones() {
   for (const zone of zones) Object.assign(zone, baseZonePositions[zone.id]);
@@ -437,19 +439,7 @@ function projectedQuad(x, y, w, h, fill, stroke = null, width = 1) {
 }
 
 function draw() {
-  ctx.imageSmoothingEnabled = true;
-  ctx.clearRect(0,0,world.w,world.h);
-  const focus=project(state.player.x,state.player.y),desiredX=clamp(world.w*.5-focus.x*camera.zoom,-300,120),desiredY=clamp(world.h*.56-focus.y*camera.zoom,-175,80);camera.x+=(desiredX-camera.x)*.09;camera.y+=(desiredY-camera.y)*.09;
-  ctx.save();ctx.translate(camera.x,camera.y);ctx.scale(camera.zoom,camera.zoom);drawGround(); drawZones(); drawPower();
-  const layers = [
-    ...state.items.map(value => ({ type:"item", value, y:value.y })),
-    ...state.guests.map(value => ({ type:"guest", value, y:value.y })),
-    ...(state.phase !== "result" ? [{ type:"player", value:state.player, y:state.player.y }] : [])
-  ].sort((a,b) => a.y - b.y);
-  for (const layer of layers) layer.type === "item" ? drawItem(layer.value) : layer.type === "guest" ? drawGuest(layer.value) : drawPlayer();
-  drawContextHighlight(); drawParticles(); if (state.weather.windy) drawWind();
-  if (state.fuseBlown) { const dark=ctx.createLinearGradient(300,80,960,560);dark.addColorStop(0,"#17232288");dark.addColorStop(1,"#080c0dcc");ctx.fillStyle=dark;projectedQuad(315,40,640,560,dark); }
-  ctx.restore();drawVignette();
+  worldRenderer.render(state, contextAction());
 }
 
 function drawGround() {
@@ -600,7 +590,7 @@ function pollGamepadActions() {
   previousGamepadButtons = pressed;
 }
 
-function frame(t) { const dt=Math.min(.05,(t-state.lastTime)/1000||0);state.lastTime=t;pollGamepadActions();update(dt);draw();updateUI();requestAnimationFrame(frame); }
+function frame(t) { const dt=Math.min(.05,(t-state.lastTime)/1000||0);state.lastTime=t;pollGamepadActions();update(dt);worldRenderer.render(state,contextAction(),dt);updateUI();requestAnimationFrame(frame); }
 function label(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 
 window.addEventListener("keydown", e => {

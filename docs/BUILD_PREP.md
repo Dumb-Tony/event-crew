@@ -27,7 +27,7 @@
 - [x] Add pause, sound toggle, and extended-deadline option.
 - [x] Add generated interaction, breaker, warning, and ceremony cue audio.
 - [x] Add crowd avoidance and access-aisle hazard evaluation.
-- [x] Replace the full-map cardboard presentation with an angled, follow-camera 2.5D diorama using the approved Municipal Workwear + Living Blueprint + Storybook Warmth visual target.
+- [x] Replace the cardboard Canvas renderer with a true low-poly WebGL venue, modeled props and characters, an orthographic follow camera, and real lighting/shadows.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
 
@@ -106,6 +106,8 @@ The first slice is accepted when:
 - [ ] Warm live-event lighting preserves requirement and interaction contrast.
 - [ ] Follow-camera motion keeps the player, held item, and immediate destination readable without exposing blank world edges.
 - [ ] Depth sorting remains correct when crew, guests, cables, and tall equipment overlap.
+- [ ] WebGL initializes without errors or warnings on current Chrome, Edge, Firefox, and Safari.
+- [ ] The permanent Pages URL loads all pinned 3D modules without contacting a CDN.
 - [ ] Requirement completion has icon/text feedback as well as color.
 - [ ] Circuit trip has world, meter, and radio feedback.
 - [ ] Canvas has an accessible label and visible keyboard focus.
