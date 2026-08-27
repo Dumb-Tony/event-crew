@@ -1,6 +1,6 @@
 # EVENT CREW — Living Game Design Document
 
-**Status:** Browser vertical slice v0.2 — visual target pass
+**Status:** Browser vertical slice v0.3 — stylized diorama pass
 **Last updated:** 2026-08-27
 **Decision owner:** living prototype; update this file when implementation changes.
 
@@ -76,7 +76,9 @@ There is no early global fail in normal contracts. A blown breaker, blocked aisl
 
 Art direction decision: **Municipal Workwear + Living Blueprint + Storybook Warmth.** The physical world uses chunky, dimensional “municipal catalog” realism: recognizable construction, grounded shadows, material contrast, safety-orange crew accents, faded county colors, and stenciled operations labels. Cyan plan marks, aisle boundaries, cable paths, circuit state, and inspection feedback form a blueprint layer over that world; these are planning information, not the objects themselves. Wedding warmth arrives through cream timber, greenery, florals, table linens, string lights, and a warmer live-event lighting pass. The result should feel like real workers temporarily transforming a practical county venue, not tokens on a board.
 
-Browser v0.2 establishes that target entirely in Canvas and CSS: landscaped venue edges, asphalt delivery staging, plank flooring, architectural shadows, dimensional furniture and equipment, curved cable runs with plugs, a uniformed crew silhouette, varied guests, world lighting, and a control-room HUD. The no-asset approach keeps deployment immediate while acting as a production-art specification for Unity. Next visual work should deepen animation and variation rather than replace this visual grammar.
+Browser v0.3 moves beyond the full-map board presentation into a **tilted 2.5D storybook diorama**. A smooth, constrained follow camera frames the worker and nearby job site instead of showing the entire map at once. World positions are projected through depth and height; characters, furniture, equipment, the breaker, building facade, delivery van, planters, cables, and shadows are layered back-to-front. Props use visible legs, side faces, frames, cloth drape, casings, and ground contact rather than flat tokens. Blueprint targets are now faint floor projections that brighten only while the matching object is carried, preserving guidance without making the venue look like a diagram.
+
+The renderer remains entirely Canvas and CSS with no asset download or build step. This is the browser interpretation of the eventual Unity target, not a claim of true 3D physics. Unity should preserve the chunky silhouettes, diorama camera angle, warm materials, contextual plan projection, and local follow-camera composition while replacing procedural drawings with modeled assets, animation rigs, lighting, and physical interaction.
 
 Audio direction: close, tactile work sounds; radio compression for task updates; spatial hums and buzzes for powered systems; a musical mix that shifts from prep percussion to diegetic live-event music at deadline. Comedy comes from timing and contrast, not quips. Critical cues (breaker trip, arrival warning) receive distinct sound plus visual feedback.
 
@@ -92,7 +94,7 @@ Jobs combine authored venue layouts with parameterized briefs, delivery order, g
 
 Current scope:
 
-- One visually dressed top-down wedding venue and delivery yard, with landscaped boundaries, staging asphalt, warm timber floor, string lighting, dimensional props, and a blueprint work-plan overlay.
+- One stylized angled wedding-venue diorama and delivery yard, with a following camera, raised architecture, landscaped boundaries, parked crew van, staging asphalt, warm timber floor, string lighting, dimensional props, and contextual blueprint projections.
 - Three-minute real-time setup phase and 22-second live-event phase.
 - Move; weighted pick up/drop; snap to client marks; separately connect/disconnect power; reset breaker; inspect checklist.
 - Six chairs, two tables, one arch, sound system, decorative lights.
@@ -172,13 +174,13 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 1. **M0 — Loop proof (complete):** one job, deadline, placement, constrained power, checklist, live event, debrief.
 2. **M1 — Legibility pass (substantially complete):** contextual outlines, collision/route blocking, audio, warnings, pause, relaxed timer, cue-based consequences, rule tests. Remaining gate: novice playtests and pacing tune.
 3. **M2 — Systems proof (feature complete, tuning pending):** fragile cake, usable dolly, cue scoring, forecasted wind variation, physical prevention, client change-order brief, and visible local career history implemented. Remaining gate: novice playtest tuning.
-4. **M2.5 — Browser presentation target (complete):** municipal-workwear venue art, living-blueprint plan layer, wedding warmth, dimensional equipment, world lighting, and an industrial operations UI.
+4. **M2.5 — Browser presentation target (complete):** angled 2.5D diorama projection, follow camera, raised venue architecture, dimensional equipment and characters, contextual plan projections, wedding warmth, world lighting, and an industrial operations UI.
 5. **M3 — Co-op graybox in Unity (3–5 weeks):** two players, shared carry, host authority, one migrated wedding venue, join/reconnect test.
 6. **M4 — Vertical slice (8–12 weeks):** 2–5 players, three polished job families, progression stub, art/audio target, Steam playtest build.
 
 ## Decisions, risks, and open questions
 
-Decisions: the event always starts; success is graded; the first power puzzle presents a meaningful tradeoff; free placement coexists with client zones; the first prototype is solo and dependency-free; Rookery County is the shared fiction; the visual target blends municipal workwear, living-blueprint information, and storybook wedding warmth.
+Decisions: the event always starts; success is graded; the first power puzzle presents a meaningful tradeoff; free placement coexists with client zones; the first prototype is solo and dependency-free; Rookery County is the shared fiction; the visual target blends municipal workwear, living-blueprint information, and storybook wedding warmth; the playable camera is a constrained follow view over an angled diorama, not a full-map plan view.
 
 Risks: moving many similar props could feel like chores; free placement may be fiddly; physics/netcode can make teamwork unfair; too many simultaneous systems may obscure causality; live-event NPCs can be expensive; progression could incentivize grinding. Mitigations include small counts, forgiving snap/outline feedback, discrete authority, staged system introductions, cheap crowd LOD, and contract variety over stat inflation.
 

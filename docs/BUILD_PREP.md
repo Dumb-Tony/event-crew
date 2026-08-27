@@ -27,7 +27,7 @@
 - [x] Add pause, sound toggle, and extended-deadline option.
 - [x] Add generated interaction, breaker, warning, and ceremony cue audio.
 - [x] Add crowd avoidance and access-aisle hazard evaluation.
-- [x] Replace graybox/cardboard presentation with the approved Municipal Workwear + Living Blueprint + Storybook Warmth visual target.
+- [x] Replace the full-map cardboard presentation with an angled, follow-camera 2.5D diorama using the approved Municipal Workwear + Living Blueprint + Storybook Warmth visual target.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
 
@@ -104,6 +104,8 @@ The first slice is accepted when:
 - [ ] Cables, plugs, breaker status, carried-item highlight, and tripped-power blackout remain legible against every venue surface.
 - [ ] Staging asphalt, venue floor, landscaping, and access aisle read as separate physical spaces without requiring labels.
 - [ ] Warm live-event lighting preserves requirement and interaction contrast.
+- [ ] Follow-camera motion keeps the player, held item, and immediate destination readable without exposing blank world edges.
+- [ ] Depth sorting remains correct when crew, guests, cables, and tall equipment overlap.
 - [ ] Requirement completion has icon/text feedback as well as color.
 - [ ] Circuit trip has world, meter, and radio feedback.
 - [ ] Canvas has an accessible label and visible keyboard focus.
