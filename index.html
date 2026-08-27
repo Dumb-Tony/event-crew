@@ -24,6 +24,14 @@
 
     <section class="game-wrap" aria-label="Wedding venue game">
       <canvas id="game" width="960" height="600" tabindex="0" aria-label="Stylized three-dimensional wedding venue. Use keyboard or a standard gamepad to move, carry equipment, and complete the event setup."></canvas>
+      <div id="tutorialPanel" class="tutorial-panel hidden" aria-live="polite">
+        <div>
+          <small id="tutorialProgress">TRAINING • 1 / 5</small>
+          <strong id="tutorialTitle">Get your bearings</strong>
+          <p id="tutorialCopy">Move around with WASD, the arrow keys, or the left stick.</p>
+        </div>
+        <button id="skipTutorial" class="secondary">SKIP TUTORIAL</button>
+      </div>
       <div id="startScreen" class="overlay">
         <div class="brief-card">
           <p class="eyebrow">THE HAWTHORN WEDDING</p>
@@ -39,6 +47,7 @@
             <span><kbd>GAMEPAD</kbd><b>Supported</b></span>
           </div>
           <div class="brief-options">
+            <label class="option tutorial-choice"><input id="tutorialMode" type="checkbox"> Guided tutorial before the clock starts</label>
             <label class="option"><input id="relaxedTime" type="checkbox"> Relaxed shift: five-minute setup</label>
             <label class="option">Forecast
               <select id="weatherMode">

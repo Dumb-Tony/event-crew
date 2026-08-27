@@ -28,6 +28,7 @@
 - [x] Add generated interaction, breaker, warning, and ceremony cue audio.
 - [x] Add crowd avoidance and access-aisle hazard evaluation.
 - [x] Replace the cardboard Canvas renderer with a true low-poly WebGL venue, modeled props and characters, an orthographic follow camera, and real lighting/shadows.
+- [x] Add optional five-step playable onboarding with a suspended deadline, mid-tutorial skip, clean shift reset, controller-equivalent prompts, and remembered completion.
 - [ ] Record completion, overload count, moves, and time-to-ready locally.
 - [ ] Run five observed first-time sessions and tune from evidence.
 
@@ -72,6 +73,13 @@ The first slice is accepted when:
 
 ### Functional
 
+- [ ] A new device offers Guided Tutorial by default; a device with completion memory defaults to skip.
+- [ ] Unchecking Guided Tutorial starts the normal timed job immediately.
+- [ ] Tutorial progresses only after movement, pickup, drop, powered connection, and checklist inspection in order.
+- [ ] Guest deadline remains suspended throughout tutorial training.
+- [ ] Tutorial cake drops do not cause damage or carry consequences into the real job.
+- [ ] Completing or skipping tutorial creates a clean equipment layout and starts the full selected deadline.
+- [ ] Tutorial instructions name both keyboard and controller equivalents.
 - [ ] Start button dismisses brief and focuses play area.
 - [ ] WASD and arrow keys move in all directions at equal normalized speed.
 - [ ] Space prevents page scrolling and picks the nearest valid object.

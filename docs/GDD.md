@@ -1,6 +1,6 @@
 # EVENT CREW — Living Game Design Document
 
-**Status:** Browser vertical slice v0.4 — true 3D presentation target
+**Status:** Browser vertical slice v0.5 — optional guided onboarding
 **Last updated:** 2026-08-27
 **Decision owner:** living prototype; update this file when implementation changes.
 
@@ -84,6 +84,12 @@ Audio direction: close, tactile work sounds; radio compression for task updates;
 
 UI: world-first with a persistent deadline, compact requirements, circuit meters, contextual interaction prompt, and radio feed. Accessibility baseline: keyboard and button parity where practical, remappable controls in Unity, captions, non-color state markers, scalable UI, reduced motion, independent sound channels, high-contrast interactable outlines, hold/toggle options, and alternatives to rapid tapping. The browser slice is keyboard-first and responsive but does not yet support touch gameplay.
 
+### Universal onboarding standard
+
+Every Rookery County work game must offer an optional playable tutorial before its first real job. It is offered by default on a device with no completion record, can be unchecked from the job briefing, and can be skipped immediately while active. Returning players are never forced through it and can deliberately enable it again.
+
+Tutorials teach the smallest shared action vocabulary through safe, hands-on steps—not a text dump. They suspend deadlines and punitive consequences, acknowledge keyboard and controller equivalents, give one clear instruction at a time, and finish by resetting the job to a clean authored start. Event Crew teaches movement, pickup, drop, power, and checklist inspection in five steps; completing inspection starts a fresh timed wedding. Completion/skip preference is device-local and contains no account data.
+
 ## Replayability and content generation
 
 Jobs combine authored venue layouts with parameterized briefs, delivery order, guest count, weather, circuit availability, vendor timing, equipment faults, and optional demands. Generation must preserve solvability and readable dependencies. Daily contracts can share a seed. Hand-authored “story contracts” introduce systems; procedural variations test mastery. Score categories, alternate layouts, efficiency records, and persistent consequences support replay without turning the game into a pure speedrun.
@@ -111,6 +117,7 @@ Current scope:
 - Players remain active after doors open and can repair later moments while crowd proximity slows movement.
 - Procession, vows, and toast are fixed live cues that snapshot aisle, audio, and reception readiness.
 - Generated Web Audio cues, floating world feedback, pause/mute, and an optional five-minute relaxed deadline.
+- Optional five-step guided training with no guest clock, an always-available skip, keyboard/controller prompts, clean job reset on completion, and device-local completion memory.
 - Rank-based debrief using arrival readiness, three live cues, overloads, detours, and late fixes.
 - Selectable clear-skies or wind-advisory contract. Wind is forecast, warned 20 seconds before impact, and produces two gusts; two physical sandbags prevent the arch from being blown off its mark.
 - Device-local career record for completed shifts, best rank/readiness, and cumulative overloads.
@@ -147,7 +154,7 @@ Unity migration: preserve scenario data, requirement predicates, event names, an
 
 ## State machines
 
-**Job:** `BRIEF → SETUP → LIVE_EVENT → DEBRIEF → RESTART`, with a reversible `PAUSED` overlay during SETUP or LIVE_EVENT. The deadline alone transitions SETUP to LIVE_EVENT. Fixed live timestamps evaluate procession, vows, and toast from current world state. The live clock transitions to DEBRIEF. Reset may occur at any point.
+**Job:** `BRIEF → [optional TUTORIAL] → SETUP → LIVE_EVENT → DEBRIEF → RESTART`, with a reversible `PAUSED` overlay during TUTORIAL, SETUP, or LIVE_EVENT. Tutorial has no deadline and resets equipment before SETUP. The setup deadline alone transitions SETUP to LIVE_EVENT. Fixed live timestamps evaluate procession, vows, and toast from current world state. The live clock transitions to DEBRIEF. Reset may occur at any point.
 
 **Player:** `FREE ↔ CARRYING`. FREE can interact with nearest item, powered equipment, or breaker. CARRYING continuously binds one item to the player and drops it freely. Future states: PUSHING, TWO_PERSON_CARRY, OPERATING_TOOL, STUNNED.
 
@@ -199,7 +206,8 @@ Open questions to test, not debate abstractly:
 2. Expand automated rule tests to phase/cue transitions and snapping boundaries.
 3. Add a controlled rain interaction only if wind remains legible in novice playtests.
 4. Tune item locations, carry speeds, and cue timing from three first-time playtests.
-5. Add one lightweight onboarding run that teaches carry, snap, and power in sequence.
+5. Tune the implemented five-step onboarding from observed first-time playtests.
 6. Validate standard gamepad mappings on Xbox, PlayStation, and generic browser controllers.
 7. Begin a Unity graybox migration checklist after browser playtest findings stabilize.
 8. Add small procedural object animations (foliage, fabric, equipment operation) and venue dressing variants without weakening gameplay silhouettes.
+9. Observe first-time players using the five-step tutorial; shorten or reorder any step that needs verbal explanation from the tester.

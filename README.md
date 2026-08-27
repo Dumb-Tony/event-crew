@@ -23,6 +23,8 @@ Standard gamepads are supported: left stick moves; south face carries/drops; wes
 
 The setup deadline is three minutes. The wedding begins when it expires, whether the venue is ready or not.
 
+New players are offered an optional five-step guided tutorial before the clock starts. It teaches movement, carrying, placement, power, and inspection through play, can be skipped immediately, and is not selected by default again after completion on that device. The work-order checkbox can enable or disable it at any time.
+
 ## Project map
 
 - `index.html` — game shell, brief, HUD, and debrief

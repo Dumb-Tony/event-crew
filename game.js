@@ -15,7 +15,9 @@ const ui = {
   radio: document.getElementById("radioText"), hint: document.getElementById("hintText"),
   loadMeter: document.getElementById("loadMeter"), loadText: document.getElementById("loadText"),
   resultTitle: document.getElementById("resultTitle"), resultCopy: document.getElementById("resultCopy"),
-  resultStats: document.getElementById("resultStats"), resultTimeline: document.getElementById("resultTimeline")
+  resultStats: document.getElementById("resultStats"), resultTimeline: document.getElementById("resultTimeline"),
+  tutorial: document.getElementById("tutorialPanel"), tutorialProgress: document.getElementById("tutorialProgress"),
+  tutorialTitle: document.getElementById("tutorialTitle"), tutorialCopy: document.getElementById("tutorialCopy")
 };
 
 const keys = new Set();
@@ -32,6 +34,14 @@ let state;
 let audioContext = null;
 let soundOn = true;
 let previousGamepadButtons = [];
+let pendingContract = null;
+const tutorialSteps = [
+  ["Get your bearings", "Move around with WASD, the arrow keys, or the left stick."],
+  ["Pick something up", "Walk beside any equipment and press Space or the south face button."],
+  ["Set it down", "Press Space or the south face button again to place what you are carrying."],
+  ["Connect power", "Move beside the speaker or lighting case and press F or the west face button."],
+  ["Check the work", "Press E or the north face button to inspect the checklist and start the real shift."]
+];
 
 function makeState(deadline = 180, windy = false, changeOrder = false) {
   const items = [];
@@ -80,12 +90,31 @@ function reset() { state = makeState(); updateUI(); }
 function start() {
   const windy = document.getElementById("weatherMode").value === "wind";
   const changeOrder = document.getElementById("briefMode").value === "change";
+  const guided = document.getElementById("tutorialMode").checked;
+  const deadline = document.getElementById("relaxedTime").checked ? 300 : world.deadline;
+  pendingContract = { windy, changeOrder, deadline };
   resetZones();
-  state = makeState(document.getElementById("relaxedTime").checked ? 300 : world.deadline, windy, changeOrder);
-  state.phase = "setup";
+  state = makeState(deadline, windy, changeOrder);
+  state.phase = guided ? "tutorial" : "setup";
+  state.tutorial = { step: 0, startX: state.player.x, startY: state.player.y };
   ui.start.classList.add("hidden"); ui.result.classList.add("hidden"); ui.pause.classList.add("hidden");
-  state.radio = windy ? "Forecast: strong gusts. Two sandbags are staged for the arch tie points." : changeOrder ? "Client says the seating plan may change. Stage cleanly and watch the radio." : "Foreman: Walk the site, then start unloading.";
+  ui.tutorial.classList.toggle("hidden", !guided);
+  if (!guided) rememberTutorial();
+  state.radio = guided ? "Training yard active. The guest clock will not start until you finish or skip." : windy ? "Forecast: strong gusts. Two sandbags are staged for the arch tie points." : changeOrder ? "Client says the seating plan may change. Stage cleanly and watch the radio." : "Foreman: Walk the site, then start unloading.";
   ensureAudio(); tone(180, .06, "square", .025); canvas.focus(); updateUI();
+}
+
+function isWorkPhase() { return state.phase === "tutorial" || state.phase === "setup" || state.phase === "ceremony"; }
+function rememberTutorial() { try { localStorage.setItem("eventCrewTutorialComplete", "1"); } catch { /* private storage may be unavailable */ } }
+function tutorialCompleted() { try { return localStorage.getItem("eventCrewTutorialComplete") === "1"; } catch { return false; } }
+function advanceTutorial(step, radio) { if (state.phase !== "tutorial" || state.tutorial.step >= step) return; state.tutorial.step = step; state.radio = radio; tone(520, .07, "sine", .025); updateUI(); }
+function finishTutorial(skipped = false) {
+  if (state.phase !== "tutorial") return;
+  rememberTutorial(); document.getElementById("tutorialMode").checked = false;
+  const config = pendingContract || { deadline: world.deadline, windy: false, changeOrder: false };
+  resetZones(); state = makeState(config.deadline, config.windy, config.changeOrder); state.phase = "setup";
+  state.radio = skipped ? "Tutorial skipped. Guest clock started—get the venue ready." : "Training complete. Fresh truck, fresh equipment, and the guest clock starts now.";
+  ui.tutorial.classList.add("hidden"); tone(skipped ? 260 : 660, .12, "triangle", .035); canvas.focus(); updateUI();
 }
 
 function requirementState() {
@@ -107,7 +136,10 @@ function requirementState() {
 function update(dt) {
   if (state.paused) return;
   state.cakeBumpCooldown = Math.max(0, state.cakeBumpCooldown - dt);
-  if (state.phase === "setup") {
+  if (state.phase === "tutorial") {
+    movePlayer(dt);
+    if (state.tutorial.step === 0 && distance(state.player.x, state.player.y, state.tutorial.startX, state.tutorial.startY) > 34) advanceTutorial(1, "Good. Walk beside a piece of equipment and pick it up.");
+  } else if (state.phase === "setup") {
     state.time = Math.max(0, state.time - dt);
     movePlayer(dt);
     if (!state.warnings.thirty && state.time <= 30) {
@@ -207,7 +239,7 @@ function playerBlocked(x, y) {
 function itemIsSolid(item) { return item.kind !== "chair"; }
 function itemRect(item) { return { x: item.x - item.w / 2, y: item.y - item.h / 2, w: item.w, h: item.h }; }
 function interact() {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  if (!isWorkPhase()) return;
   const p = state.player;
   if (p.held) {
     dropHeldItem(); return;
@@ -215,7 +247,9 @@ function interact() {
   const nearest = nearestItem(48);
   if (nearest && distance(p.x, p.y, nearest.x, nearest.y) < 48) {
     if (nearest.powered) { state.radio = `Disconnect the ${label(nearest.kind)} before moving it.`; tone(110, .08, "square", .025); return; }
-    p.held = nearest; nearest.held = true; state.radio = `${label(nearest.kind)} in hand. Clear a path.`; updateUI(); return;
+    p.held = nearest; nearest.held = true; state.radio = `${label(nearest.kind)} in hand. Clear a path.`;
+    if (state.phase === "tutorial" && state.tutorial.step === 1) advanceTutorial(2, "Nice lift. Set it back down with the same control.");
+    updateUI(); return;
   }
   state.radio = "Nothing within reach."; updateUI();
 }
@@ -229,8 +263,9 @@ function dropHeldItem() {
     state.radio = `${label(item.kind)} locked to the client mark.`; addParticle(item.x, item.y, "READY", "#91bc68"); tone(520, .08, "sine", .035);
   } else {
     state.radio = `${label(item.kind)} placed off-plan. The client mark is still open.`; tone(190, .05, "triangle", .018);
-    if (item.fragile) damageCake("The cake took damage from a rough off-plan drop.");
+    if (item.fragile && state.phase !== "tutorial") damageCake("The cake took damage from a rough off-plan drop.");
   }
+  if (state.phase === "tutorial" && state.tutorial.step === 2) advanceTutorial(3, "Equipment placed. Find the speaker or lighting case and connect its power.");
   recordInteraction(); updateUI();
 }
 
@@ -244,7 +279,7 @@ function damageCake(message) {
 }
 
 function toolInteract() {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  if (!isWorkPhase()) return;
   const dolly = state.items.find(i => i.id === "dolly");
   if (state.player.dolly) {
     dolly.equipped = false; dolly.x = state.player.x; dolly.y = state.player.y + 30; state.player.dolly = null;
@@ -256,7 +291,7 @@ function toolInteract() {
 }
 
 function powerInteract() {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  if (!isWorkPhase()) return;
   const p = state.player;
   if (state.fuseBlown && distance(p.x, p.y, 438, 525) < 48) {
     state.items.forEach(i => i.powered = false); state.fuseBlown = false;
@@ -274,6 +309,7 @@ function powerInteract() {
     state.radio = `${label(item.kind)} ${item.powered ? "connected" : "disconnected"}. Circuit draw: ${load} amps.`;
     tone(item.powered ? 330 : 170, .07, "square", .025);
   }
+  if (state.phase === "tutorial" && state.tutorial.step === 3 && item.powered) advanceTutorial(4, "Power is live. Inspect the client checklist to finish training.");
   recordInteraction(); updateUI();
 }
 
@@ -285,7 +321,12 @@ function nearestItem(range = Infinity) {
 }
 
 function inspect() {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  if (!isWorkPhase()) return;
+  if (state.phase === "tutorial") {
+    if (state.tutorial.step === 4) finishTutorial();
+    else state.radio = "Follow the current training step first; the checklist comes last.";
+    return;
+  }
   const r = requirementState(); state.verified = true;
   const missing = [];
   if (!r.arch) missing.push("arch"); if (r.tables < 2) missing.push(`${2-r.tables} table${2-r.tables === 1 ? "" : "s"}`);
@@ -295,7 +336,7 @@ function inspect() {
 }
 
 function contextAction() {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return null;
+  if (!isWorkPhase()) return null;
   const p = state.player;
   if (p.held) return { type: "held", item: p.held, text: `SPACE drop ${label(p.held.kind)}` };
   const dolly = state.items.find(i => i.id === "dolly");
@@ -406,12 +447,12 @@ function updateUI() {
   const r = requirementState(); const shownTime = state.phase === "ceremony" ? Math.max(0, world.ceremonyLength - state.ceremonyTime) : state.time;
   const career = loadCareer();
   ui.career.textContent = career.shifts ? `LOCAL CREW RECORD • ${career.shifts} SHIFTS • BEST ${career.bestRank} • ${career.totalOverloads} TOTAL OVERLOADS` : "NO COMPLETED SHIFTS ON THIS DEVICE";
-  ui.timer.textContent = `${String(Math.floor(shownTime / 60)).padStart(2,"0")}:${String(Math.floor(shownTime % 60)).padStart(2,"0")}`;
-  ui.phase.textContent = state.paused ? "PAUSED" : state.phase === "ceremony" ? "LIVE" : state.phase === "result" ? "DONE" : "SETUP";
-  ui.deadlineCaption.textContent = state.phase === "ceremony" ? "CEREMONY LIVE" : state.phase === "result" ? "SHIFT COMPLETE" : "UNTIL GUESTS";
+  ui.timer.textContent = state.phase === "tutorial" ? "--:--" : `${String(Math.floor(shownTime / 60)).padStart(2,"0")}:${String(Math.floor(shownTime % 60)).padStart(2,"0")}`;
+  ui.phase.textContent = state.paused ? "PAUSED" : state.phase === "tutorial" ? "TRAINING" : state.phase === "ceremony" ? "LIVE" : state.phase === "result" ? "DONE" : "SETUP";
+  ui.deadlineCaption.textContent = state.phase === "tutorial" ? "NO GUEST CLOCK" : state.phase === "ceremony" ? "CEREMONY LIVE" : state.phase === "result" ? "SHIFT COMPLETE" : "UNTIL GUESTS";
   const nextCue = state.phase !== "ceremony" ? "PREP" : state.cues.procession === null ? "PROCESSION" : state.cues.vows === null ? "VOWS" : state.cues.toast === null ? "TOAST" : "WRAP";
   const briefFlag = state.changeOrder.enabled && !state.changeOrder.applied ? " • CHANGE PENDING" : state.changeOrder.applied ? " • PLAN B" : "";
-  ui.cue.textContent = `CH. 4 • ${nextCue}${state.weather.windy ? " • WIND" : ""}${briefFlag}`;
+  ui.cue.textContent = state.phase === "tutorial" ? "CH. 4 • TRAINING" : `CH. 4 • ${nextCue}${state.weather.windy ? " • WIND" : ""}${briefFlag}`;
   const cake = state.items.find(i => i.id === "cake");
   const reqs = [["Ceremony arch", r.arch], [`Chairs ${r.chairs} / 6`, r.chairs === 6], [`Tables ${r.tables} / 2`, r.tables === 2], ["Sound placed + powered", r.audio], [`Cake intact ${cake.durability} / 3`, r.cake], ["Final checklist verified", state.verified]];
   if (state.weather.windy) reqs.splice(1, 0, [`Arch ties ${r.sandbags} / 2`, r.sandbags === 2]);
@@ -420,7 +461,8 @@ function updateUI() {
   ui.radio.textContent = state.radio; ui.loadText.textContent = `${r.load} / 15A`; ui.loadMeter.style.width = `${Math.min(100, r.load / 15 * 100)}%`;
   ui.loadMeter.style.background = state.fuseBlown ? "#e2634d" : r.load > 12 ? "#f0a33e" : "#91bc68";
   const action = contextAction();
-  ui.hint.textContent = state.phase === "result" ? "Shift complete." : action ? action.text : "P pause • R restart";
+  if (state.phase === "tutorial") { const step=tutorialSteps[state.tutorial.step]; ui.tutorialProgress.textContent=`TRAINING • ${state.tutorial.step+1} / ${tutorialSteps.length}`; ui.tutorialTitle.textContent=step[0]; ui.tutorialCopy.textContent=step[1]; }
+  ui.hint.textContent = state.phase === "result" ? "Shift complete." : state.phase === "tutorial" ? tutorialSteps[state.tutorial.step][1] : action ? action.text : "P pause • R restart";
 }
 
 function project(x, y, z = 0) {
@@ -571,7 +613,7 @@ function toggleSound() {
   if (soundOn) { ensureAudio(); tone(440, .06, "sine", .025); }
 }
 function togglePause(force) {
-  if (state.phase !== "setup" && state.phase !== "ceremony") return;
+  if (!isWorkPhase()) return;
   state.paused = typeof force === "boolean" ? force : !state.paused;
   ui.pause.classList.toggle("hidden", !state.paused); if (!state.paused) canvas.focus(); updateUI();
 }
@@ -605,4 +647,6 @@ document.getElementById("startButton").addEventListener("click", start);
 document.getElementById("restartButton").addEventListener("click", start);
 document.getElementById("resumeButton").addEventListener("click", () => togglePause(false));
 document.getElementById("muteButton").addEventListener("click", toggleSound);
+document.getElementById("skipTutorial").addEventListener("click", () => finishTutorial(true));
+document.getElementById("tutorialMode").checked = !tutorialCompleted();
 reset(); requestAnimationFrame(frame);

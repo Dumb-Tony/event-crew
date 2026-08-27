@@ -57,6 +57,14 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
 .option { display: flex; gap: 8px; align-items: center; margin: 0 0 13px; color: var(--muted); font-size: .76rem; }
 .option input { width: 17px; height: 17px; accent-color: var(--orange); }
 .option select { border: 1px solid #566258; padding: 7px 10px; background: #111713; color: var(--ink); font: inherit; }
+.tutorial-choice { color: var(--ink); font-weight: 800; }
+.tutorial-panel { position: absolute; z-index: 3; left: 22px; bottom: 22px; display: flex; width: min(590px, calc(100% - 44px)); gap: 18px; align-items: center; justify-content: space-between; padding: 16px 17px 15px 20px; border: 1px solid #ffc05c99; border-left: 5px solid var(--orange); background: linear-gradient(125deg, #17231dec, #0e1512ec); box-shadow: 0 14px 36px #0009, inset 0 1px #fff1; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); pointer-events: none; }
+.tutorial-panel.hidden { display: none; }
+.tutorial-panel div { display: grid; gap: 4px; }
+.tutorial-panel small { color: var(--orange); font: 900 .62rem/1 ui-monospace, monospace; letter-spacing: .12em; }
+.tutorial-panel strong { color: #fff3d5; font: 900 1.05rem/1.1 Bahnschrift, sans-serif; text-transform: uppercase; }
+.tutorial-panel p { margin: 0; color: #c9d2c8; font-size: .78rem; }
+.tutorial-panel button { flex: 0 0 auto; padding: 10px 13px; pointer-events: auto; }
 .career-line { margin-bottom: 18px; color: var(--green) !important; font: 700 .68rem/1.4 ui-monospace, monospace; letter-spacing: .04em; }
 .pause-card { max-width: 540px; }
 .pause-card small { display: block; color: var(--muted); }
@@ -95,6 +103,8 @@ button:focus-visible { outline: 3px solid white; outline-offset: 3px; }
   .requirements ul { grid-template-columns: 1fr; }
   .result-stats { grid-template-columns: repeat(2, 1fr); }
   .game-wrap::before, .game-wrap::after { display:none; }
+  .tutorial-panel { right: 12px; bottom: 12px; left: 12px; width: auto; align-items: flex-end; }
+  .tutorial-panel p { font-size: .7rem; }
 }
 @media (max-width: 480px) {
   .shell { padding: 8px; }
